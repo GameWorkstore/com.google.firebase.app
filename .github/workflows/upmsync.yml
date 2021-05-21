@@ -1,0 +1,56 @@
+name: UPM Sync
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      base: https://dl.google.com/games/registry/unity/com.google.external-dependency-manager/com.google.external-dependency-manager
+      version: 1.2.165
+    steps:
+      - uses: actions/checkout@v2
+      - name: Config
+        run: |
+          git config --local user.email "contact@gameworkstore.com"
+          git config --local user.name "game-workstore-bot"
+      
+      - name: Download Package
+        run: |
+          rm -rf Staging
+          mkdir Staging
+          cd Staging
+          curl ${{ env.base }}-${{ env.version }}.tgz --output content.tgz
+          tar -xvzf content.tgz
+          rm content.tgz
+          ls
+          git add --a
+          git commit -m "Package Update ${{ env.version }}"
+          git push origin
+
+      - name: Update README
+        if: false
+        run: |
+          if ! cmp --silent "README.md" "Assets/Package/README.md"; then
+              echo "different"
+              cp -f README.md Assets/Package/README.md
+              git add --a
+              git commit -m "Updated README.md"
+              git push origin
+          fi
+
+      - name: Cook UPM
+        run: |
+          ls Staging/package/
+          git subtree split -P Staging/package/ -b upm
+          git checkout upm
+          ls
+
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: upm
+          force: true
