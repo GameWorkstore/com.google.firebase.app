@@ -1,768 +1,1500 @@
-External Dependency Manager for Unity
-========
-
-# Overview
-
-The External Dependency Manager for Unity (EDM4U)
-(formerly Play Services Resolver / Jar Resolver) is intended to be used by any
-Unity plugin that requires:
-
-   * Android specific libraries (e.g
-     [AARs](https://developer.android.com/studio/projects/android-library.html)).
-   * iOS [CocoaPods](https://cocoapods.org/).
-   * Version management of transitive dependencies.
-   * Management of Package Manager (PM) Registries.
-
-Updated releases are available on
-[GitHub](https://github.com/googlesamples/unity-jar-resolver)
-
-# Background
-
-Many Unity plugins have dependencies upon Android specific libraries, iOS
-CocoaPods, and sometimes have transitive dependencies upon other Unity plugins.
-This causes the following problems:
-
-   * Integrating platform specific (e.g Android and iOS) libraries within a
-     Unity project can be complex and a burden on a Unity plugin maintainer.
-   * The process of resolving conflicting dependencies on platform specific
-     libraries is pushed to the developer attempting to use a Unity plugin.
-     The developer trying to use you plugin is very likely to give up when
-     faced with Android or iOS specific build errors.
-   * The process of resolving conflicting Unity plugins (due to shared Unity
-     plugin components) is pushed to the developer attempting to use your Unity
-     plugin. In an effort to resolve conflicts, the developer will very likely
-     attempt to resolve problems by deleting random files in your plugin,
-     report bugs when that doesn't work and finally give up.
-
-EDM provides solutions for each of these problems.
-
-## Android Dependency Management
-
-The *Android Resolver* component of this plugin will download and integrate
-Android library dependencies and handle any conflicts between plugins that share
-the same dependencies.
-
-Without the Android Resolver, typically Unity plugins bundle their AAR and
-JAR dependencies, e.g. a Unity plugin `SomePlugin` that requires the Google
-Play Games Android library would redistribute the library and its transitive
-dependencies in the folder `SomePlugin/Android/`.  When a user imports
-`SomeOtherPlugin` that includes the same libraries (potentially at different
-versions) in `SomeOtherPlugin/Android/`, the developer using `SomePlugin` and
-`SomeOtherPlugin` will see an error when building for Android that can be hard
-to interpret.
-
-Using the Android Resolver to manage Android library dependencies:
-
-   * Solves Android library conflicts between plugins.
-   * Handles all of the various processing steps required to use Android
-     libraries (AARs, JARs) in Unity 4.x and above projects.  Almost all
-     versions of Unity have - at best - partial support for AARs.
-   * (Experimental) Supports minification of included Java components without
-     exporting a project.
-
-## iOS Dependency Management
+Firebase Unity SDK
+==================
+
+The Firebase Unity SDK provides Unity packages for the following Firebase
+features on *iOS* and *Android*:
+
+| Feature                            | Unity Package                     |
+|:----------------------------------:|:---------------------------------:|
+| Firebase Analytics                 | FirebaseAnalytics.unitypackage    |
+| Firebase Authentication            | FirebaseAuth.unitypackage         |
+| Firebase Crashlytics               | FirebaseCrashlytics.unitypackage  |
+| Firebase Dynamic Links             | FirebaseDynamicLinks.unitypackage |
+| Cloud Firestore                    | FirebaseFirestore.unitypackage    |
+| Firebase Functions                 | FirebaseFunctions.unitypackage    |
+| Firebase Installations             | FirebaseInstallations.unitypackage|
+| Firebase Instance ID               | FirebaseInstanceId.unitypackage   |
+| Firebase Messaging                 | FirebaseMessaging.unitypackage    |
+| Firebase Realtime Database         | FirebaseDatabase.unitypackage     |
+| Firebase Remote Config             | FirebaseRemoteConfig.unitypackage |
+| Firebase Storage                   | FirebaseStorage.unitypackage      |
 
-The *iOS Resolver* component of this plugin integrates with
-[CocoaPods](https://cocoapods.org/) to download and integrate iOS libraries
-and frameworks into the Xcode project Unity generates when building for iOS.
-Using CocoaPods allows multiple plugins to utilize shared components without
-forcing developers to fix either duplicate or incompatible versions of
-libraries included through multiple Unity plugins in their project.
-
-## Package Manager Registry Setup
-
-The [Package Manager](https://docs.unity3d.com/Manual/Packages.html)
-(PM) makes use of [NPM](https://www.npmjs.com/) registry servers for package
-hosting and provides ways to discover, install, upgrade and uninstall packages.
-This makes it easier for developers to manage plugins within their projects.
-
-However, installing additional package registries requires a few manual steps
-that can potentially be error prone.  The *Package Manager Resolver*
-component of this plugin integrates with
-[PM](https://docs.unity3d.com/Manual/Packages.html) to provide a way to
-auto-install PM package registries when a `.unitypackage` is installed which
-allows plugin maintainers to ship a `.unitypackage` that can provide access
-to their own PM registry server to make it easier for developers to
-manage their plugins.
-
-## Unity Plugin Version Management
-
-Finally, the *Version Handler* component of this plugin simplifies the process
-of managing transitive dependencies of Unity plugins and each plugin's upgrade
-process.
-
-For example, without the Version Handler plugin, if:
-
-   * Unity plugin `SomePlugin` includes `EDM4U` plugin at
-     version 1.1.
-   * Unity plugin `SomeOtherPlugin` includes `EDM4U`
-     plugin  at version 1.2.
-
-The version of `EDM4U` included in the developer's project depends upon the
-order the developer imports `SomePlugin` or `SomeOtherPlugin`.
-
-This results in:
-
-   * `EDM4U` at version 1.2, if `SomePlugin` is imported then `SomeOtherPlugin`
-     is imported.
-   * `EDM4U` at version 1.1, if `SomeOtherPlugin` is imported then
-     `SomePlugin` is imported.
-
-The Version Handler solves the problem of managing transitive dependencies by:
-
-   * Specifying a set of packaging requirements that enable a plugin at
-     different versions to be imported into a Unity project.
-   * Providing activation logic that selects the latest version of a plugin
-     within a project.
-
-When using the Version Handler to manage `EDM4U` included in `SomePlugin` and
-`SomeOtherPlugin`, from the prior example, version 1.2 will always be the
-version activated in a developer's Unity project.
-
-Plugin creators are encouraged to adopt this library to ease integration for
-their customers.  For more information about integrating EDM4U
-into your own plugin, see the [Plugin Redistribution](#plugin-redistribution)
-section of this document.
-
-# Analytics
-
-The External Dependency Manager for Unity plugin by default logs usage to Google
-Analytics. The purpose of the logging is to quantitatively measure the usage of
-functionality, to gather reports on integration failures and to inform future
-improvements to the developer experience of the External Dependency Manager
-plugin. Note that the analytics collected are limited to the scope of the EDM4U
-plugin’s usage.
-
-For details of what is logged, please refer to the usage of
-`EditorMeasurement.Report()` in the source code.
-
-# Requirements
-
-The *Android Resolver* and *iOS Resolver* components of the plugin only work
-with Unity version 4.6.8 or higher.
-
-The *Version Handler* component only works with Unity 5.x or higher as it
-depends upon the `PluginImporter` UnityEditor API.
-
-The *Package Manager Resolver* component only works with
-Unity 2018.4 or above, when
-[scoped registry](https://docs.unity3d.com/Manual/upm-scoped.html)
-support was added to the Package Manager.
-
-# Getting Started
-
-Before you import EDM4U into your plugin project, you first
-need to consider whether you intend to *redistribute* `EDM4U`
-along with your own plugin.
-
-## Plugin Redistribution
-
-If you're a plugin maintainer, redistributing `EDM4U` inside your own plugin
-will ease the integration process for your users, by resolving dependency
-conflicts between your plugin and other plugins in a user's project.
-
-If you wish to redistribute `EDM4U` inside your plugin,
-you **must** follow these steps when importing the
-`external-dependency-manager-*.unitypackage`, and when exporting your own plugin
-package:
-
-   1. Import the `external-dependency-manager-*.unitypackage` into your plugin
-      project by
-      [running Unity from the command line](https://docs.unity3d.com/Manual/CommandLineArguments.html), ensuring that
-      you add the `-gvh_disable` option.
-   1. Export your plugin by [running Unity from the command line](https://docs.unity3d.com/Manual/CommandLineArguments.html), ensuring that
-      you:
-      - Include the contents of the `Assets/PlayServicesResolver` and
-        `Assets/ExternalDependencyManager` directory.
-      - Add the `-gvh_disable` option.
-
-You **must** specify the `-gvh_disable` option in order for the Version
-Handler to work correctly!
-
-For example, the following command will import the
-`external-dependency-manager-1.2.46.0.unitypackage` into the project
-`MyPluginProject` and export the entire Assets folder to
-`MyPlugin.unitypackage`:
-
-```
-Unity -gvh_disable \
-      -batchmode \
-      -importPackage external-dependency-manager-1.2.46.0.unitypackage \
-      -projectPath MyPluginProject \
-      -exportPackage Assets MyPlugin.unitypackage \
-      -quit
-```
-
-### Background
-
-The *Version Handler* component relies upon deferring the load of editor DLLs
-so that it can run first and determine the latest version of a plugin component
-to activate.  The build of `EDM4U` plugin has Unity asset metadata that is
-configured so that the editor components are not initially enabled when it's
-imported into a Unity project.  To maintain this configuration when importing
-the `external-dependency-manager.unitypackage` into a Unity plugin project, you
-*must* specify the command line option `-gvh_disable` which will prevent the
-Version Handler component from running and changing the Unity asset metadata.
-
-# Android Resolver Usage
-
-The Android Resolver copies specified dependencies from local or remote Maven
-repositories into the Unity project when a user selects Android as the build
-target in the Unity editor.
-
-   1. Add the `external-dependency-manager-*.unitypackage` to your plugin
-      project (assuming you are developing a plugin). If you are redistributing
-      EDM4U with your plugin, you **must** follow the
-      import steps in the [Getting Started](#getting-started) section!
-
-   2. Copy and rename the
-      [SampleDependencies.xml](https://github.com/googlesamples/unity-jar-resolver/blob/master/sample/Assets/ExternalDependencyManager/Editor/SampleDependencies.xml)
-      file into your plugin and add the dependencies your plugin requires.
-
-      The XML file just needs to be under an `Editor` directory and match the
-      name `*Dependencies.xml`. For example,
-      `MyPlugin/Editor/MyPluginDependencies.xml`.
-
-   3. Follow the steps in the [Getting Started](#getting-started)
-      section when you are exporting your plugin package.
-
-For example, to add the Google Play Games library
-(`com.google.android.gms:play-services-games` package) at version `9.8.0` to
-the set of a plugin's Android dependencies:
-
-```
-<dependencies>
-  <androidPackages>
-    <androidPackage spec="com.google.android.gms:play-services-games:9.8.0">
-      <androidSdkPackageIds>
-        <androidSdkPackageId>extra-google-m2repository</androidSdkPackageId>
-      </androidSdkPackageIds>
-    </androidPackage>
-  </androidPackages>
-</dependencies>
-```
-
-The version specification (last component) supports:
-
-   * Specific versions e.g `9.8.0`
-   * Partial matches e.g `9.8.+` would match 9.8.0, 9.8.1 etc. choosing the most
-     recent version.
-   * Latest version using `LATEST` or `+`.  We do *not* recommend using this
-     unless you're 100% sure the library you depend upon will not break your
-     Unity plugin in future.
-
-The above example specifies the dependency as a component of the Android SDK
-manager such that the Android SDK manager will be executed to install the
-package if it's not found.  If your Android dependency is located on Maven
-central it's possible to specify the package simply using the `androidPackage`
-element:
-
-```
-<dependencies>
-  <androidPackages>
-    <androidPackage spec="com.google.api-client:google-api-client-android:1.22.0" />
-  </androidPackages>
-</dependencies>
-```
-
-## Auto-resolution
-
-By default the Android Resolver automatically monitors the dependencies you have
-specified and the `Plugins/Android` folder of your Unity project.  The
-resolution process runs when the specified dependencies are not present in your
-project.
-
-The *auto-resolution* process can be disabled via the
-`Assets > External Dependency Manager > Android Resolver > Settings` menu.
-
-Manual resolution can be performed using the following menu options:
-
-   * `Assets > External Dependency Manager > Android Resolver > Resolve`
-   * `Assets > External Dependency Manager > Android Resolver > Force Resolve`
-
-## Deleting libraries
-
-Resolved packages are tracked via asset labels by the Android Resolver.
-They can easily be deleted using the
-`Assets > External Dependency Manager > Android Resolver > Delete Resolved Libraries`
-menu item.
-
-## Android Manifest Variable Processing
-
-Some AAR files (for example play-services-measurement) contain variables that
-are processed by the Android Gradle plugin.  Unfortunately, Unity does not
-perform the same processing when using Unity's Internal Build System, so the
-Android Resolver plugin handles known cases of this variable substitution
-by exploding the AAR into a folder and replacing `${applicationId}` with the
-`bundleID`.
-
-Disabling AAR explosion and therefore Android manifest processing can be done
-via the `Assets > External Dependency Manager > Android Resolver > Settings`
-menu. You may want to disable explosion of AARs if you're exporting a project
-to be built with Gradle / Android Studio.
-
-## ABI Stripping
-
-Some AAR files contain native libraries (.so files) for each ABI supported
-by Android.  Unfortunately, when targeting a single ABI (e.g x86), Unity does
-not strip native libraries for unused ABIs.  To strip unused ABIs, the Android
-Resolver plugin explodes an AAR into a folder and removes unused ABIs to
-reduce the built APK size.  Furthermore, if native libraries are not stripped
-from an APK (e.g you have a mix of Unity's x86 library and some armeabi-v7a
-libraries) Android may attempt to load the wrong library for the current
-runtime ABI completely breaking your plugin when targeting some architectures.
-
-AAR explosion and therefore ABI stripping can be disabled via the
-`Assets > External Dependency Manager > Android Resolver > Settings` menu.
-You may want to disable explosion of AARs if you're exporting a project to be
-built with Gradle / Android Studio.
-
-## Resolution Strategies
-
-By default the Android Resolver will use Gradle to download dependencies prior
-to integrating them into a Unity project.  This works with Unity's internal
-build system and Gradle / Android Studio project export.
-
-It's possible to change the resolution strategy via the
-`Assets > External Dependency Manager > Android Resolver > Settings` menu.
-
-### Download Artifacts with Gradle
-
-Using the default resolution strategy, the Android resolver executes the
-following operations:
-
-   - Remove the result of previous Android resolutions.
-     e.g Delete all files and directories labeled with "gpsr" under
-     `Plugins/Android` from the project.
-   - Collect the set of Android dependencies (libraries) specified by a
-     project's `*Dependencies.xml` files.
-   - Run `download_artifacts.gradle` with Gradle to resolve conflicts and,
-     if successful, download the set of resolved Android libraries (AARs, JARs).
-   - Process each AAR / JAR so that it can be used with the currently selected
-     Unity build system (e.g Internal vs. Gradle, Export vs. No Export).
-     This involves patching each reference to `applicationId` in the
-     AndroidManifest.xml with the project's bundle ID.  This means resolution
-     must be run if the bundle ID is changed again.
-   - Move the processed AARs to `Plugins/Android` so they will be included when
-     Unity invokes the Android build.
-
-### Integrate into mainTemplate.gradle
-
-Unity 5.6 introduced support for customizing the `build.gradle` used to build
-Unity projects with Gradle. When the *Patch mainTemplate.gradle* setting is
-enabled, rather than downloading artifacts before the build, Android resolution
-results in the execution of the following operations:
-
-   - Remove the result of previous Android resolutions.
-     e.g Delete all files and directories labeled with "gpsr" under
-     `Plugins/Android` from the project and remove sections delimited with
-     `// Android Resolver * Start` and `// Android Resolver * End` lines.
-   - Collect the set of Android dependencies (libraries) specified by a
-     project's `*Dependencies.xml` files.
-   - Rename any `.srcaar` files in the build to `.aar` and exclude them from
-     being included directly by Unity in the Android build as
-     `mainTemplate.gradle` will be patched to include them instead from their
-     local maven repositories.
-   - Inject the required Gradle repositories into `mainTemplate.gradle` at the
-     line matching the pattern
-     `.*apply plugin: 'com\.android\.(application|library)'.*` or the section
-     starting at the line `// Android Resolver Repos Start`.
-     If you want to control the injection point in the file, the section
-     delimited by the lines `// Android Resolver Repos Start` and
-     `// Android Resolver Repos End` should be placed in the global scope
-     before the `dependencies` section.
-   - Inject the required Android dependencies (libraries) into
-     `mainTemplate.gradle` at the line matching the pattern `***DEPS***` or
-     the section starting at the line `// Android Resolver Dependencies Start`.
-     If you want to control the injection point in the file, the section
-     delimited by the lines `// Android Resolver Dependencies Start` and
-     `// Android Resolver Dependencies End` should be placed in the
-     `dependencies` section.
-   - Inject the packaging options logic, which excludes architecture specific
-     libraries based upon the selected build target, into `mainTemplate.gradle`
-     at the line matching the pattern `android +{` or the section starting at
-     the line `// Android Resolver Exclusions Start`.
-     If you want to control the injection point in the file, the section
-     delimited by the lines `// Android Resolver Exclusions Start` and
-     `// Android Resolver Exclusions End` should be placed in the global
-     scope before the `android` section.
-
-## Dependency Tracking
-
-The Android Resolver creates the
-`ProjectSettings/AndroidResolverDependencies.xml` to quickly determine the set
-of resolved dependencies in a project.  This is used by the auto-resolution
-process to only run the expensive resolution process when necessary.
-
-## Displaying Dependencies
-
-It's possible to display the set of dependencies the Android Resolver
-would download and process in your project via the
-`Assets > External Dependency Manager > Android Resolver > Display Libraries`
-menu item.
-
-# iOS Resolver Usage
-
-The iOS resolver component of this plugin manages
-[CocoaPods](https://cocoapods.org/).  A CocoaPods `Podfile` is generated and
-the `pod` tool is executed as a post build process step to add dependencies
-to the Xcode project exported by Unity.
-
-Dependencies for iOS are added by referring to CocoaPods.
-
-   1. Add the `external-dependency-manager-*.unitypackage` to your plugin
-      project (assuming you are developing a plugin). If you are redistributing
-      EDM4U with your plugin, you **must** follow the
-      import steps in the [Getting Started](#getting-started) section!
-
-   2. Copy and rename the
-      [SampleDependencies.xml](https://github.com/googlesamples/unity-jar-resolver/blob/master/sample/Assets/ExternalDependencyManager/Editor/SampleDependencies.xml)
-      file into your plugin and add the dependencies your plugin requires.
-
-      The XML file just needs to be under an `Editor` directory and match the
-      name `*Dependencies.xml`. For example,
-      `MyPlugin/Editor/MyPluginDependencies.xml`.
-
-   3. Follow the steps in the [Getting Started](#getting-started)
-      section when you are exporting your plugin package.
-
-For example, to add the AdMob pod, version 7.0 or greater with bitcode enabled:
-
-```
-<dependencies>
-  <iosPods>
-    <iosPod name="Google-Mobile-Ads-SDK" version="~> 7.0" bitcodeEnabled="true"
-            minTargetSdk="6.0" addToAllTargets="false" />
-  </iosPods>
-</dependencies>
-```
-
-## Integration Strategies
-
-The `CocoaPods` are either:
-   * Downloaded and injected into the Xcode project file directly, rather than
-     creating a separate xcworkspace.  We call this `Xcode project` integration.
-   * If the Unity version supports opening a xcworkspace file, the `pod` tool
-     is used as intended to generate a xcworkspace which references the
-     CocoaPods.  We call this `Xcode workspace` integration.
-
-The resolution strategy can be changed via the
-`Assets > External Dependency Manager > iOS Resolver > Settings` menu.
-
-### Appending text to generated Podfile
-In order to modify the generated Podfile you can create a script like this:
-```
-using System.IO;
-public class PostProcessIOS : MonoBehaviour {
-[PostProcessBuildAttribute(45)]//must be between 40 and 50 to ensure that it's not overriden by Podfile generation (40) and that it's added before "pod install" (50)
-private static void PostProcessBuild_iOS(BuildTarget target, string buildPath)
-{
-    if (target == BuildTarget.iOS)
-    {
-
-        using (StreamWriter sw = File.AppendText(buildPath + "/Podfile"))
-        {
-            //in this example I'm adding an app extension
-            sw.WriteLine("\ntarget 'NSExtension' do\n  pod 'Firebase/Messaging', '6.6.0'\nend");
-        }
-    }
-}
-```
-
-# Package Manager Resolver Usage
-
-Adding registries to the
-[Package Manager](https://docs.unity3d.com/Manual/Packages.html)
-(PM) is a manual process. The Package Manager Resolver (PMR) component
-of this plugin makes it easy for plugin maintainers to distribute new PM
-registry servers and easy for plugin users to manage PM registry servers.
-
-## Adding Registries
-
-   1. Add the `external-dependency-manager-*.unitypackage` to your plugin
-      project (assuming you are developing a plugin). If you are redistributing
-      EDM4U with your plugin, you **must** follow the
-      import steps in the [Getting Started](#getting-started) section!
-
-   2. Copy and rename the
-      [SampleRegistries.xml](https://github.com/googlesamples/unity-jar-resolver/blob/master/sample/Assets/ExternalDependencyManager/Editor/sample/Assets/ExternalDependencyManager/Editor/SampleRegistries.xml)
-      file into your plugin and add the registries your plugin requires.
-
-      The XML file just needs to be under an `Editor` directory and match the
-      name `*Registries.xml` or labeled with `gumpr_registries`. For example,
-      `MyPlugin/Editor/MyPluginRegistries.xml`.
-
-   3. Follow the steps in the [Getting Started](#getting-started)
-      section when you are exporting your plugin package.
-
-For example, to add a registry for plugins in the scope `com.coolstuff`:
-
-```
-<registries>
-  <registry name="Cool Stuff"
-            url="https://unityregistry.coolstuff.com"
-            termsOfService="https://coolstuff.com/unityregistry/terms"
-            privacyPolicy="https://coolstuff.com/unityregistry/privacy">
-    <scopes>
-      <scope>com.coolstuff</scope>
-    </scopes>
-  </registry>
-</registries>
-```
-
-When PMR is loaded it will prompt the developer to add the registry to their
-project if it isn't already present in the `Packages/manifest.json` file.
-
-For more information, see Unity's documentation on
-[scoped package registries](https://docs.unity3d.com/Manual/upm-scoped.html).
-
-## Managing Registries
-
-It's possible to add and remove registries that are specified via PMR
-XML configuration files via the following menu options:
-
-* `Assets > External Dependency Manager > Package Manager Resolver >
-  Add Registries` will prompt the user with a window which allows them to
-  add registries discovered in the project to the Package Manager.
-* `Assets > External Dependency Manager > Package Manager Resolver >
-  Remove Registries` will prompt the user with a window which allows them to
-  remove registries discovered in the project from the Package Manager.
-* `Assets > External Dependency Manager > Package Manager Resolver >
-  Modify Registries` will prompt the user with a window which allows them to
-  add or remove registries discovered in the project.
-
-## Migration
-
-PMR can migrate Version Handler packages installed in the `Assets` folder
-to PM packages. This requires the plugins to implement the following:
-
-* `.unitypackage` must include a Version Handler manifests that describes
-   the components of the plugin. If the plugin has no dependencies
-   the manifest would just include the files in the plugin.
-* The PM package JSON provided by the registry must include a keyword
-  (in the `versions.VERSION.keyword` list) that maps the PM package
-  to a Version Handler package using the format
-  `vh-name:VERSION_HANDLER_MANIFEST_NAME` where `VERSION_HANDLER_MANIFEST_NAME`
-  is the name of the manifest defined in the `.unitypackage`.  For
-  more information see the description of the `gvhp_manifestname` asset label
-  in the *Version Handler Usage* section.
-
-When using the `Assets > External Dependency Manager >
-Package Manager Resolver > Migrate Packages` menu option, PMR then
-will:
-
-* List all Version Handler manager packages in the project.
-* Search all available packages in the PM registries and fetch keywords
-  associated with each package parsing the Version Handler manifest names
-  for each package.
-* Map each installed Version Handler package to a PM package.
-* Prompt the user to migrate the discovered packages.
-* Perform package migration for all selected packages if the user clicks
-  the `Apply` button.
-
-## Configuration
-
-PMR can be configured via the `Assets > External Dependency Manager >
-Package Manager Resolver > Settings` menu option:
-
-* `Add package registries` when enabled, when the plugin loads or registry
-  configuration files change, this will prompt the user to add registries
-  that are not present in the Package Manager.
-* `Prompt to add package registries` will cause a developer to be prompted
-  with a window that will ask for confirmation before adding registries.
-  When this is disabled registries are added silently to the project.
-* `Prompt to migrate packages` will cause a developer to be prompted
-  with a window that will ask for confirmation before migrating packages
-  installed in the `Assets` directory to PM packages.
-* `Enable Analytics Reporting` when enabled, reports the use of the plugin
-  to the developers so they can make imrpovements.
-* `Verbose logging` when enabled prints debug information to the console
-  which can be useful when filing bug reports.
-
-# Version Handler Usage
-
-The Version Handler component of this plugin manages:
-
-* Shared Unity plugin dependencies.
-* Upgrading Unity plugins by cleaning up old files from previous versions.
-* Uninstallation of plugins that are distributed with manifest files.
-* Restoration of plugin assets to their original install locations if assets
-  are tagged with the `exportpath` label.
-
-Since the Version Handler needs to modify Unity asset metadata (`.meta` files),
-to enable / disable components, rename and delete asset files it does not
-work with Package Manager installed packages. It's still possible to
-include EDM4U in Package Manager packages, the Version Handler component
-simply won't do anything to PM plugins in this case.
-
-## Using Version Handler Managed Plugins
-
-If a plugin is imported at multiple different versions into a project, if
-the Version Handler is enabled, it will automatically check all managed
-assets to determine the set of assets that are out of date and assets that
-should be removed. To disable automatic checking managed assets disable
-the `Enable version management` option in the
-`Assets > External Dependency Manager > Version Handler > Settings` menu.
-
-If version management is disabled, it's possible to check managed assets
-manually using the
-`Assets > External Dependency Manager > Version Handler > Update` menu option.
-
-### Listing Managed Plugins
-
-Plugins managed by the Version Handler, those that ship with manifest files,
-can displayed using the `Assets > External Dependency Manager >
-Version Handler > Display Managed Packages` menu option. The list of plugins
-are written to the console window along with the set of files used by each
-plugin.
-
-### Uninstalling Managed Plugins
-
-Plugins managed by the Version Handler, those that ship with manifest files,
-can be removed using the `Assets > External Dependency Manager >
-Version Handler > Uninstall Managed Packages` menu option. This operation
-will display a window that allows a developer to select a set of plugins to
-remove which will remove all files owned by each plugin excluding those that
-are in use by other installed plugins.
-
-Files managed by the Version Handler, those labeled with the `gvh` asset label,
-can be checked to see whether anything needs to be upgraded, disabled or
-removed using the `Assets > External Dependency Manager >
-Version Handler > Update` menu option.
-
-### Restore Install Paths
-
-Some developers move assets around in their project which can make it
-harder for plugin maintainers to debug issues if this breaks Unity's
-[special folders](https://docs.unity3d.com/Manual/SpecialFolders.html) rules.
-If assets are labeled with their original install / export path
-(see `gvhp_exportpath` below), Version Handler can restore assets to their
-original locations when using the `Assets > External Dependency Manager >
-Version Handler > Move Files To Install Locations` menu option.
-
-### Settings
-
-Some behavior of the Version Handler can be configured via the
-`Assets > External Dependency Manager > Version Handler > Settings` menu
-option.
-
-* `Enable version management` controls whether the plugin should automatically
-  check asset versions and apply changes. If this is disabled the process
-  should be run manually when installing or upgrading managed plugins using
-  `Assets > External Dependency Manager > Version Handler > Update`.
-* `Rename to canonical filenames` is a legacy option that will rename files to
-  remove version numbers and other labels from filenames.
-* `Prompt for obsolete file deletion` enables the display of a window when
-  obsolete files are deleted allowing the developer to select which files to
-  delete and those to keep.
-* `Allow disabling files via renaming` controls whether obsolete or disabled
-  files should be disabled by renaming them to `myfilename_DISABLED`.
-  Renaming to disable files is required in some scenarios where Unity doesn't
-  support removing files from the build via the PluginImporter.
-* `Enable Analytics Reporting` enables / disables usage reporting to plugin
-  developers to improve the product.
-* `Verbose logging` enables _very_ noisy log output that is useful for
-  debugging while filing a bug report or building a new managed plugin.
-* `Use project settings` saves settings for the plugin in the project rather
-  than system-wide.
-
-## Redistributing a Managed Plugin
-
-The Version Handler employs a couple of methods for managing version
-selection, upgrade and removal of plugins.
-
-* Each plugin can ship with a manifest file that lists the files it includes.
-  This makes it possible for Version Handler to calculate the difference
-  in assets between the most recent release of a plugin and the previous
-  release installed in a project. If a files are removed the Version Handler
-  will prompt the user to clean up obsolete files.
-* Plugins can ship using assets with unique names, unique GUIDs and version
-  number labels. Version numbers can be attached to assets using labels or
-  added to the filename (e.g `myfile.txt` would be `myfile_version-x.y.z.txt).
-  This allows the Version Handler to determine which set of files are the
-  same file at different versions, select the most recent version and prompt
-  the developer to clean up old versions.
-
-Unity plugins can be managed by the Version Handler using the following steps:
-
-   1. Add the `gvh` asset label to each asset (file) you want Version Handler
-      to manage.
-   1. Add the `gvh_version-VERSION` label to each asset where `VERSION` is the
-      version of the plugin you're releasing (e.g 1.2.3).
-   1. Add the `gvhp_exportpath-PATH` label to each asset where `PATH` is the
-      export path of the file when the `.unitypackage` is created.  This is
-      used to track files if they're moved around in a project by developers.
-   1. Optional: Add `gvh_targets-editor` label to each editor DLL in your
-      plugin and disable `editor` as a target platform for the DLL.
-      The Version Handler will enable the most recent version of this DLL when
-      the plugin is imported.
-   1. Optional: If your plugin is included in other Unity plugins, you should
-      add the version number to each filename and change the GUID of each asset.
-      This allows multiple versions of your plugin to be imported into a Unity
-      project, with the Version Handler component activating only the most
-      recent version.
-   1. Create a manifest text file named `MY_UNIQUE_PLUGIN_NAME_VERSION.txt`
-      that lists all the files in your plugin relative to the project root.
-      Then add the `gvh_manifest` label to the asset to indicate this file is
-      a plugin manifest.
-   1. Optional: Add a `gvhp_manifestname-NAME` label to your manifest file
-      to provide a human readable name for your package.  If this isn't provided
-      the name of the manifest file will be used as the package name.
-      NAME can match the pattern `[0-9]+[a-zA-Z -]' where a leading integer
-      will set the priority of the name where `0` is the highest priority
-      and preferably used as the display name. The lowest value (i.e highest
-      priority name) will be used as the display name and all other specified
-      names will be aliases of the display name. Aliases can refer to previous
-      names of the package allowing renaming across published versions.
-   1. Redistribute EDM4U Unity plugin with your plugin.
-      See the [Plugin Redistribution](#plugin-redistribution) for the details.
-
-If you follow these steps:
-
-   * When users import a newer version of your plugin, files referenced by the
-     older version's manifest are cleaned up.
-   * The latest version of the plugin will be selected when users import
-     multiple packages that include your plugin, assuming the steps in
-     [Plugin Redistribution](#plugin-redistribution) are followed.
-
-# Building from Source
-
-To build this plugin from source you need the following tools installed:
-   * Unity (with iOS and Android modules installed)
-
-You can build the plugin by running the following from your shell
-(Linux / OSX):
-
-```
-./gradlew build
-```
-
-or Windows:
-
-```
-./gradlew.bat build
-```
-
-# Releasing
-
-Each time a new build of this plugin is checked into the source tree you
-need to do the following:
-
-   * Bump the plugin version variable `pluginVersion` in `build.gradle`
-   * Update `CHANGELOG.md` with the new version number and changes included in
-     the release.
-   * Build the release using `./gradlew release` which performs the following:
-      * Updates `external-dependency-manager-*.unitypackage`
-      * Copies the unpacked plugin to the `exploded` directory.
-      * Updates template metadata files in the `plugin` directory.
-        The GUIDs of all asset metadata is modified due to the version number
-        change. Each file within the plugin is versioned to allow multiple
-        versions of the plugin to be imported into a Unity project which allows
-        the most recent version to be activated by the Version Handler
-        component.
-   * Create release commit using `./gradlew gitCreateReleaseCommit` which
-     performs `git commit -a -m "description from CHANGELOG.md"`
-   * Once the release commit is merge, tag the release using
-     `./gradlew gitTagRelease` which performs the following:
-     * `git tag -a pluginVersion -m "version RELEASE"` to tag the release.
-   * Update tags on remote branch using `git push --tag REMOTE HEAD:master`
+The SDK provides .NET 3.x and .NET 4.x compatible packages in the `dotnet3` and
+`dotnet4` directories of the SDK:
+
+* Unity 5.x and earlier use the .NET 3.x framework, so you need to import
+  packages from the `dotnet3` directory.
+* Unity 2017.x and newer allow the use of the .NET 4.x framework.  If your
+  project is configured to use .NET 4.x, import packages from the
+  `dotnet4` directory.
+
+## Desktop Workflow Implementations
+
+The Firebase Unity SDK includes desktop workflow support for the following
+Firebase features, enabling their use in the Unity editor and in standalone
+desktop builds on Windows, OS X, and Linux:
+
+| Feature                            | Unity Package                     |
+|:----------------------------------:|:---------------------------------:|
+| Firebase Authentication            | FirebaseAuth.unitypackage         |
+| Firebase Realtime Database*        | FirebaseDatabase.unitypackage     |
+| Cloud Firestore                    | FirebaseFirestore.unitypackage    |
+| Firebase Functions                 | FirebaseFunctions.unitypackage    |
+| Firebase Remote Config             | FirebaseRemoteConfig.unitypackage |
+| Firebase Storage                   | FirebaseStorage.unitypackage      |
+
+(* See Known Issues in the Release Notes below.)
+
+This is a Beta feature, and is intended for workflow use only during the
+development of your app, not for publicly shipping code.
+
+## Stub Implementations
+
+Stub (non-functional) implementations of the remaining libraries are provided
+for convenience when building for Windows, OS X, and Linux, so that you don't
+need to conditionally compile code when also targeting the desktop.
+
+## AdMob
+
+The AdMob Unity plugin is distributed separately and is available from the
+[AdMob Get Started](https://firebase.google.com/docs/admob/unity/start) guide.
+
+## Known Issues
+
+### .NET 4.x compatibility when using Unity 2017.x and newer.
+
+.NET 4.x support is available as a build option in Unity 2017 and newer.
+Firebase plugins use components of the
+[Parse SDK](https://github.com/parse-community/Parse-SDK-dotNET) to provide some
+.NET 4.x classes in earlier versions of .NET. Therefore, versions `5.4.0` and
+newer of the {{unity_sdk}} provide plugins that are compatible with either
+.NET 3.x or .NET 4.x in `dotnet3` and `dotnet4` directories of the
+{{unity_sdk_link}}.
+
+If you import a Firebase plugin that is incompatible with the .NET version
+enabled in your project, you'll see compile errors from some types in the
+.NET framework that are implemented by the Parse SDK.
+
+To resolve the compilation error, if you're using .NET 3.x:
+
+1. Remove or disable the following DLLs for all platforms:
+    - `Parse/Plugins/dotNet45/Unity.Compat.dll`
+    - `Parse/Plugins/dotNet45/Unity.Tasks.dll`
+1. Enable the following DLLs for all platforms:
+    - `Parse/Plugins/Unity.Compat.dll`
+    - `Parse/Plugins/Unity.Tasks.dll`
+
+To resolve the compilation error, if you're using .NET 4.x:
+
+1. Remove or disable the following DLLs for all platforms:
+    - `Parse/Plugins/Unity.Compat.dll`
+    - `Parse/Plugins/Unity.Tasks.dll`
+1. Enable the following DLLs for all platforms:
+    - `Parse/Plugins/dotNet45/Unity.Compat.dll`
+    - `Parse/Plugins/dotNet45/Unity.Tasks.dll`
+
+If you import another Firebase plugin:
+
+- Select the menu item
+  `Assets > Play Services Resolver > Version Handler > Update`
+  to enable the correct DLLs for your project.
+
+### Unity 2017.2 Networking
+
+Realtime Database creates TLS network connections using the .NET networking
+stack.  TLS functionality is broken in Unity 2017.2 when using .NET 4.6 causing
+the Realtime Database plugin to fail in editor and on desktop.  There is no
+workaround for this issue, you have to use a different version of Unity, for
+example 2017.1 or 2017.3.
+
+
+### Unity 4 workarounds
+
+Firebase plugins are not officially supported in Unity 4.  However, we do
+make an effort to ensure the plugins can work with some manual setup.
+
+A couple of components do not work in Unity 4:
+
+  - [Version Handler](https://github.com/googlesamples/unity-jar-resolver#unity-plugin-version-management)
+    does not work due to no PluginImporter and no clean way to prevent managed
+    DLLs from being loaded by Unity 4.
+    - This means it's not possible for plugins to automatically enable the most
+      recent version of shared components (e.g Firebase, AdMob, Facebook etc.
+      may share a common component).
+    - DLLs that target a specific .NET version (e.g .NET 4.x) are not disabled.
+  - Managed (C#) DLLs cannot be targeted to a specific platform which breaks
+    our plugin where we have platform specific C# DLLs for some components.
+
+To use in Unity 4 you will need to:
+
+  - Resolve any dependencies that are shared between multiple plugins.
+    For example, Firebase and AdMob use the
+    [Play Services Resolver](https://github.com/googlesamples/unity-jar-resolver)
+    which contains DLLs that encode the version in their filename under the
+    folder `PlayServicesResolver/Editor`.  For each versioned DLL under the
+    folder `PlayServicesResolver/Editor` delete the oldest version of each DLL.
+  - Remove .NET 4.x DLLs from `Parse/Plugins/dotNet45`.
+  - Remove / rename platform specific DLLs.
+    Firebase plugins contain iOS specific DLLs under the folder
+    `Firebase/Plugins/iOS`.
+    - When *not* building for iOS:
+      - Change the extension of files under the `Firebase/Plugins/iOS` folder
+        from `.dll` to `.dlldisabled`
+    - When building for iOS:
+      - Change the extension of files under the `Firebase/Plugins/iOS` folder
+        from `.dlldisabled` to `.dll`
+      - For each file in `Firebase/Plugins/iOS` change the file extension of
+        the same name under `Firebase/Plugins` from `.dll` to `.dlldisabled`.
+        For example, `Firebase/Plugins/iOS/Firebase.App.dll` and
+        `Firebase/Plugins/Firebase.App.dlldisabled`.
+
+Setup
+-----
+
+You need to follow the
+[SDK setup instructions](https://firebase.google.com/docs/unity/setup).
+Each Firebase package requires configuration in the
+[Firebase Console](https://firebase.google.com/console).  If you fail to
+configure your project your app's initialization will fail.
+
+Support
+-------
+
+[Firebase Support](http://firebase.google.com/support/)
+
+Release Notes
+-------------
+### 8.0.0:
+-   Breaking Changes
+    - Instance Id: Removed support for the previously-deprecated Instance ID
+      SDK.
+    - Remote Config: The previously-deprecated class
+      `FirebaseRemoteConfigDeprecated` and the property
+      `ConfigSettings.IsDeveloperMode` have been removed.
+
+### 7.2.0:
+-   Changes
+    - Database: Fixed a potential crash that can occur as a result of a race
+      condition when adding, removing and deleting `ValueListener`s or
+      `ChildListener`s rapidly.
+    - Database: Fixed a crash when setting large values on Windows and Mac
+      systems ([#517](https://github.com/firebase/quickstart-unity/issues/517)].
+    - FCM (Android): Fixed triggering of callback handlers for background
+      notifications. Using `enqueuWork` instead of `startService`.
+    - Crashlytics: Added new Unity-specific metadata to help diagnose tricky
+      crashes around specific hardware setups.
+
+
+### 7.1.0:
+-   Breaking Changes
+    - Remote Config: Changed `FirebaseRemoteConfig` to be an instanced class,
+      with new APIs to better manage fetching config data. The old static
+      methods are now deprecated, and can be accessed in the new class
+      `FirebaseRemoteConfigDeprecated`.
+    - Remote Config: `ConfigSettings.IsDeveloperMode` is now obsolete and does
+      nothing. `ConfigSettings.MinimumFetchInternalInMilliseconds` should be
+      adjusted instead.
+-   Changes
+    - General: Add GoogleServices-Info.plist to `Unity-iPhone` target in
+      Unity 2019.3+.
+    - Firestore: Fixed partial updates in `UpdateAsync()` with
+      `FieldValue.Delete`
+      ([#882](https://github.com/firebase/quickstart-unity/issues/882)).
+    - Firestore: Fixed `DocumentSnapshot.ToDictionary()` on non-existent
+      documents when running on Android
+      ([#887](https://github.com/firebase/quickstart-unity/issues/887)).
+    - Firestore: Fixed crash setting FirebaseFirestore.LogLevel on Android
+      before any instances have been created
+      ([#888](https://github.com/firebase/quickstart-unity/issues/888)).
+    - Auth: Fixed a flaky crash when accessing the result from the task returned
+      by `FetchProvidersForEmailAsync`.
+    - Auth: You can now specify a language for emails and text messages sent
+      from your apps using UseAppLanguage() or setting the
+      FirebaseAuth.LanguageCode property.
+    - Messaging (Android): Using `enqueueWork` instead of `startService`.
+      Fixes bug where we lost messages with data payloads received when app
+      is in background.
+      ([#877](https://github.com/firebase/quickstart-unity/issues/877)
+    - Remote Config: Fixed numeric value conversion `ConfigValue.DoubleValue`
+      and `ConfigValue.LongValue` to be locale independent.
+    - Installations: Fixed pod version to 7.5.0.
+
+### 7.0.1:
+-   Changes
+    - Remote Config (Android): Fixed the crash bug introduced in 7.0.0.
+
+### 7.0.0:
+-   Changes
+    - General (iOS): iOS SDKs are now built using Xcode 11.7.
+    - App (Editor): Remove deprecated service account APIs.
+    - App: Remove `FirebaseApp.CheckDependencies()` API.
+    - Analytics: Remove deprecated SetMinimumSessionDuration call.
+    - Installations: Added Installations SDK. See [Documentations](http://firebase.google.com/docs/reference/unity/namespace/firebase/installations) for
+      details.
+    - Instance Id: Marked Instance Id as deprecated.
+    - Messaging: Added getToken, deleteToken apis.
+    - Messaging: Removed deprecated Send() function.
+    - Storage: Remove deprecated `DownloadUrl` and `DownloadUrls` properties in
+      `StorageMetadata`.
+    - Messaging: raw_data has been changed from a std::string to a byte array.
+    - Dynamic Links: Remove deprecated `DynamicLinkComponents.DynamicLinkDomain`
+      . Please use `DynamicLinkComponents.DomainUriPrefix` instead.
+    - Dynamic Links (Android): Bump up Android library version and remove
+      dependency to GMS app invite.
+    - Firestore: Added support for `WhereNotEqualTo` and `WhereNotIn` queries.
+    - Firestore: Added new internal HTTP headers to the gRPC connection.
+    - Firestore: Fixed a Unity Editor hang on Windows when restarting an app
+      after listening to a query, document, or snapshots in sync
+      ([#845](https://github.com/firebase/quickstart-unity/issues/845)).
+    - Firestore: Added support for `FirebaseFirestoreSettings.CacheSizeBytes`.
+    - Firestore: Fixed an intermittent crash in the Unity Editor when the app is
+      restarted while a transaction is in progress
+      ([#783](https://github.com/firebase/quickstart-unity/issues/783)).
+    - Firestore: Fixed a crash when writing to a document after having been
+      offline for long enough that the auth token expired
+      ([#872](https://github.com/firebase/quickstart-unity/issues/872)).
+
+### 6.16.1:
+-   Changes
+    - General (Android): Fixes regression in 6.16.0 about Android build error
+      "Program type already present: com.google.firebase.unity.BuildConfig" when
+      make Android build with Crashlytics SDK in Unity 2019 and below.
+    - General: Significantly reduced the filesize of the Linux libraries.
+    - Database (Desktop): Added a function to create directories recursively
+      for persistent storage that fixes segfaults.
+
+### 6.16.0:
+-   Changes
+    - General: Prevent Firebase SDK from causing GC in every frame.
+    - General (Editor): Improved the performance of Firebase Editor tools by
+      delay initialization when condition met and improve asset searching.
+    - General: Deprecate Firebase.Unity.Editor.FirebaseEditorExtensions. Most of
+      the functions is noop now and will be removed soon.
+    - General: **Breaking Change** Remove deprecated functions
+      `FirebaseApp.SetEditorAuthUserId()` and
+      `FirebaseApp.GetEditorAuthUserId()` in order to improve performance.
+    - General: (Android) Fixed that FirebaseApp failed to create for builds
+      created by Unity 2020+ due to google-services.json not found. All Firebase
+      Android resource files are moved to directories with `androidlib`
+      extension.
+    - General: (Android) Remove android:minSdkVersion from AndroidManifest.xml
+      under `Assets/Plugins/Android/Firebase` which is causing build error in
+      Unity 2020.
+    - Database (Desktop): Enabled offline persistence.
+    - Firestore: Fixed FirebaseFirestore.LogLevel for some log levels.
+    - Firestore: Added `Error.None` as a synonym for `Error.Ok`, which is more
+      consistent with other Firebase Unity APIs.
+    - auth.SWIG: Fix typo (across).
+    - Firestore: Fixed leaked memory in FirebaseFirestore C# objects.
+    - Crashlytics: Fixed an issue on iOS where the Crashlytics Run Script would fail to get added on versions of Unity 2018 and below [#5569](https://github.com/firebase/firebase-ios-sdk/issues/5569)
+    - Crashlytics: (Android) Fixed crashes for builds created by Unity 2020+ due
+      to build ID is missing. Generated Crashlytics Android resource files are
+      moved to `Plugins/Android/FirebaseCrashlytics.androidlib`.
+    - Firestore: Fixed `CollectionReference.AddAsync()` to propagate errors.
+    - Firestore: Changed async tasks to fault with `FirestoreException`.
+    - Firestore: Renamed the `Error` enum to `FirestoreError`.
+    - Messaging (Android): Updated library to be compatible with Android O,
+      which should resolve a IllegalStateException that could occur under
+      certain conditions.
+    - Messaging: Deprecated the `Send` function.
+    - Firestore: Added meaningful error messages to the exceptions with which
+      `ListenerRegistration.ListenerTask` tasks fault.
+
+### 6.15.2
+  - Overview
+  - Changes
+    - Firestore (iOS): Fixed the missing Dispose symbol by updating to the
+      correct Cocoapod version.
+
+### 6.15.1
+  - Overview
+  - Changes
+    - Firestore: Significantly improved stability when reentering play mode,
+      addressing [this issue](https://github.com/firebase/quickstart-unity/issues/638).
+    - Firestore: Fixed memory leaks that could cause a global reference table
+      overflow on Android, addressing [this
+      issue](https://github.com/firebase/quickstart-unity/issues/627).
+    - Fixed an issue that warns about Future handle not released properly.
+    - Firestore: Added the `ListenerRegistration.ListenerTask` property which
+      facilitates discovering an error that causes the listener stream to stop.
+    - Fixed an issue that cause Editor crash on the second time click play.
+
+### 6.15.0
+  - Overview
+    - Replaced legacy Fabric Crashlytics Android and iOS SDKs with updated
+      Firebase Crashlytics SDKs.
+    - Reduce editor freeze when play mode starts.
+  - Changes
+    - Crashlytics (Android and iOS): Updated with the Firebase Crashlytics
+      Android & iOS SDKs, which now use Firebase-specific endpoints rather than
+      the deprecated Fabric endpoints. Crashlytics C# APIs have not changed.
+    - Crashlytics (Editor): Removed UI for managing Fabric API keys, which are
+      no longer required. Migrated Fabric apps will automatically use the Google
+      App Id as defined in the `GoogleServicesInfo.plist` and
+      `google-services.json` files.
+    - Crashlytics (Editor): Fixed an [issue](https://github.com/firebase/quickstart-unity/issues/652)
+      that occurs when Crashlytics is imported using the Unity Package Manager.
+    - Crashlytics: Added `[assembly: Preserve]` attribute to
+      Firebase.Crashlytics namespace, to prevent stripping of Crashlytics code
+      by the UnityLinker.
+    - Firestore: Fixed several serialization issues on iOS.
+    - Firestore: Added `WaitForPendingWritesAsync` method which allows users to
+      wait on a task that completes when all pending writes are acknowledged
+      by the firestore backend.
+    - Firestore: Added `TerminateAsync` method which terminates the instance,
+      releasing any held resources.
+    - Firestore: Added `ClearPersistenceAsync` method which clears the
+      persistent cache, allowing unit/integration tests to be more isolated.
+    - Firestore: Added `Query.LimitToLast(int n)`, which returns the last
+      `n` documents as the result.
+    - Firestore: Added support for changing Firestore settings.
+    - Test Lab: Experimental release of Test Lab is now available on all
+      supported platforms.
+    - Firestore: Removed the `DocumentReference.ListenerDelegate` and
+      `Query.ListenerDelegate` delegates. These were intended to be
+      internal-only types.
+    - General: Reduce editor freeze when play mode starts by not running
+      XcodeProjectPatcher, GeneratedXmlFromGoogleServices and
+      AndroidManifestPatcher if the editor is in play mode or about to start
+      play mode.
+    - Messaging: (Android) Using the MessagingUnityPlayerActivity will no longer
+      interfere with Unity's built-in handling of deep links.
+
+### 6.14.1
+  - Changes
+    - Auth: Added a new method: Firebase.Auth.Credential.IsValid().
+    - Auth: Added Firebase.Auth.FirebaseAccountLinkException which may be thrown
+      by LinkAndRetrieveDataWithCredentialAsync. The exception includes a
+      Firebase.Auth.UserInfo object which may contain additional information
+      about the user's account.
+    - Auth (iOS): Added Firebase.Auth.UserInfo.UpdatedCredential. This
+      credential may be valid in FirebaseAccountLinkExceptions indicating that
+      the credential may be used to sign into Firebase as the Apple-linked user.
+
+### 6.14.0
+  - Changes
+    - Firestore: `Firestore.LoggingEnabled` is replaced by `Firestore.LogLevel`
+      for consistency with other Firebase Unity APIs. The getter for this
+      property has been removed.
+    - Crashlytics (iOS): Removes references to UIWebView APIs to prevent App
+      Store rejections.
+
+### 6.13.0
+  - Changes
+    - General: Update asset labels so that External Dependency Manager works
+      even if files in Firebase SDK are moved.
+    - Firestore: Added `Query.WhereArrayContains()` query operator to find
+      documents where an array field contains a specific element.
+    - Firestore: Added `FieldValue.ArrayUnion()` and `FieldValue.ArrayRemove()`
+      to atomically add and remove elements from an array field in a document.
+    - Firestore: Added `Query.WhereIn()` and `Query.WhereArrayContainsAny()`
+      query operators. `Query.WhereIn()` finds documents where a specified
+      field’s value is IN a specified array. `Query.WhereArrayContainsAny()`
+      finds documents where a specified field is an array and contains ANY
+      element of a specified array.
+    - Firestore: Fixed QuerySnapshot.GetEnumerator() to not throw an
+      InvalidCastException.
+
+### 6.12.0
+  - Overview
+    - Added experimental support for Cloud Firestore SDK.
+  - Changes
+    - Firestore: Experimental release of Firestore is now available on all
+      supported platforms.
+
+### 6.11.0
+  - Overview
+    - Updated dependencies, changed minimum Xcode, and fixed an issue in
+      Database handling Auth token revocation.
+  - Changes
+    - General (Editor): Added FirebaseAuth manifest file to
+      FirebaseDatabase.unitypackage and FirebaseStorage.unitypackage for better
+      package management through Play Services Resolver.
+    - General (iOS): Minimum Xcode version is now 10.3.
+    - General: When creating a FirebaseApp, the ProjectId from the default
+      FirebaseApp is used if one is not provided.
+    - Database (Desktop): Fixed that database stops reconnecting to server after
+      the auth token is revoked.
+
+### 6.10.0
+  - Overview
+    - Auth bug fixes and resource generation improvements.
+  - Changes
+    - Auth (iOS): Enabled the method OAuthProvider.GetCredential. This method
+      takes a nonce parameter as required by Apple Sign-in.
+    - Auth (Desktop): Fixed a deadlock that could cause the Unity Editor to
+      freeze when disposing FirebaseAuth.
+    - Editor: Python 3 compatibility for resource generation script and added
+      a fallback to use the Python interpreter on Windows 7/8.
+    - Editor: Removed debug logging when the resource generator script is
+      executed.
+
+### 6.9.0
+  - Overview
+    - Updated dependencies, added support for Apple Sign-in to Auth,
+      support for signing-in using a 3rd party web providers and
+      configuration of BigQuery export in Messaging, fixed a Crashlytics
+      build reporting bug with Python 3 and fixed core editor plugin loading
+      issue on Windows.
+  - Changes
+    - Auth: Added API for invoking FirebaseAuth.SignInWithProvider and User
+      FirebaseUser.LinkWithProvider and FirebaseUser.ReauthenticateWithProvider
+      for sign in with third party auth providers.
+    - Auth: Added constant ProviderId strings to the provider classes.
+    - Auth (iOS): Added support for linking Apple Sign-in credentials.
+    - Crashlytics: Fixed build event reporting when Python 3 is installed on
+      Mac or Linux machines.
+    - Messaging (Android): Added the option to enable or disable message
+      delivery metrics export to BigQuery. This functionality is currently only
+      available on Android. Stubs are provided on iOS for cross platform
+      compatibility.
+    - Editor: Fixed core editor plugin so that it loads without the iOS Unity
+      extension installed on Windows.
+
+### 6.8.1
+  - Overview
+     - Fixed Crashlytics and core editor plugin.
+  - Changes
+    - Crashlytics (Editor): Fixed Crashlytics editor plugin so that it loads
+      without the iOS Unity extension installed.
+    - Editor: Fixed core editor plugin so that it loads without the iOS Unity
+      extension installed.
+
+### 6.8.0
+  - Overview
+    - Updated dependencies and fixed resource generation issue with python3.
+  - Changes
+    - Editor: Fixed an issue where resource generation from
+      google-services.json or GoogleService-Info.plist would fail if python3
+      was used to execute the resource generation script.
+
+### 6.7.0
+  - Overview
+    - Updated dependencies, fixed issues in Analytics, Database, Dynamic Links,
+      Crashlytics, and Storage.
+  - Changes
+    - Storage (iOS/Android): Fixed an issue where
+      FirebaseStorage.GetReferenceFromUrl would return an invalid
+      StorageReference.
+    - Dynamic Links: Fixed an issue where removing delegate from
+      DynamicLinks.DynamicLinkReceived does not stop the delegate from being
+      called.
+    - Database: Fixed an issue causing timestamps to not be populated correctly
+      when using DatabaseReference.UpdateChildren().
+    - Database (Desktop): Fixed an issue preventing listener events from being
+      triggered after DatabaseReference.UpdateChildren() is called.
+    - Database (Desktop): Functions that take string parameters will now
+      fail gracefully if passed a null pointer.
+    - Database (Desktop): Fixed an issue that could result in an incorrect
+      snapshot being passed to listeners under specific circumstances.
+    - Database (Desktop): Fixed an issue causing
+      DatabaseReference.RunTransaction() to fail due to datastale when the
+      location previously stored a list with more than 10 items or a dictionary
+      with integer keys.
+    - Crashlytics: Fixed an [issue](https://github.com/firebase/quickstart-unity/issues/493)
+      on iOS with Unity 2019.3 beta where the plugin fails to create a XCode run
+      script to upload symbols.
+    - Analytics (iOS): Fixed the racy behavior of
+      `FirebaseAnalytics.GetAnalyticsInstanceId()` after calling
+      `FirebaseAnalytics.ResetAnalyticsData()`.
+
+### 6.6.0
+  - Overview
+    - Updated dependencies, fixed issues in Auth & Database.
+  - Changes
+    - Auth (Desktop): Fixed not loading provider list from cached user data.
+    - Database (Desktop): Fixed a crash that could occur when trying to keep a
+      location in the database synced when you do not have permission.
+    - Database (Desktop): Queries on locations in the database with query rules
+      now function properly, instead of always returning "Permission denied".
+    - Database (Desktop): Fixed the map-to-vector conversion when firing events
+      that have maps containing enitrely integer keys.
+
+### 6.5.0
+  - Overview
+    - Updated dependencies, improved logging for Auth and Database, and fixed
+      the freeze in the editor.
+  - Changes
+    - General: The instance of FirebaseApp, FirebaseAuth, FirebaseDatabase,
+      FirebaseFunctions, FirebaseInstanceId and FirebaseStorage will be kept
+      alive after creation until explicitly disposed.
+    - Auth (Linux): Improved error logging if libsecret (required for login
+      persistence) is not installed on Linux.
+    - Database: The database now supports setting the log level independently of
+      the system level logger.
+    - Auth/Database (Desktop): Fixed the freeze when playing in the editor for
+      the more than once or when closing the editor, when keeping a static
+      reference to either FirebaseAuth or FirebaseDatabase instances.
+
+### 6.4.0
+  - Overview
+    - Updated dependencies, improved error handling in the iOS build logic,
+      improved error handling with deleted objects, fixed an issue with Auth
+      persistence, and fixed a crash in Database.
+  - Changes
+    - General: Added more underlying null checks when accessing objects that can
+      potentially be deleted, throwing exceptions instead of crashing.
+    - General (iOS): Handle malformed Info.plist files when patching Xcode
+      projects.
+    - Auth (Desktop): Fixed an issue with updated user info not being persisted.
+    - Database (Desktop): Fixed a crash with saving a ServerTimestamp during
+      a transaction.
+
+### 6.3.0
+  - Overview
+    - Auth (iOS): Fixed an exception in Firebase.AuthVerifyPhoneNumber.
+  - Changes
+    - General (Editor): Fixed spurious errors about missing google-services.json
+      file.
+    - General (iOS/Android): Fixed a bug that allows custom FirebaseApp
+      instances to be created after the app has been restarted
+    - Auth (Desktop): Changed destruction behavior. Instead of waiting for all
+      async operations to finish, now Auth will cancel all async operations and
+      quit. For callbacks that are already running, this will protect against
+      cases where auth instances might not exist anymore.
+    - Auth (iOS): Fixed an exception in PhoneAuthProvider.verifyPhoneNumber.
+    - Auth (iOS): Stopped Auth from hanging on destruction if any local tasks
+      remain in scope.
+    - Database (Desktop): Fixed an issue that could cause a crash when updating
+      the descendant of a location with a listener attached.
+
+### 6.2.2
+  - Overview
+    - Bug fixes.
+  - Changes
+    - General (Editor): Worked around regression in Unity 2019.2 and 2019.3
+      which caused DllNotFoundException.
+    - General (Editor, macOS): Add support for macOS 10.11.x.
+    - Auth (Editor): After loading a persisted user data, ensure token is
+      not expired.
+    - Auth (desktop): Ensure Database, Storage and Functions do not use an
+      expired token after it's loaded from persistent storage.
+    - Database (Editor): Fixed a crash when calling UpdateChildrenAsync.
+    - Database (Editor): Deprecated service account authentication.
+    - Database (Editor): Fixed DatabaseReference.RunTransaction() sending
+      invalid data to the server which causes error message "Error on
+      incoming message" and freeze.
+  - Known Issues
+    - Database/Storage/Functions may fail to send authentication token to server
+      if FirebaseAuth is garbage-collected. If you are unable to access to
+      the server due to "Permission Denied", please try to keep FirebaseAuth
+      alive.
+
+### 6.2.1
+  - Overview
+    - Fixed Crashlytics on Android not working correctly.
+  - Changes
+    - Crashlytics (Android): Fixed an issue causing Crashlytics to believe it
+      was shut down, blocking all functionality.
+
+### 6.2.0
+  - Overview
+    - Moved Realtime Database to a C++ implementation on desktop, added support
+      for custom domains to Dynamic Links, and fixed issues in Database,
+      Instance ID, and Crashlytics.
+  - Changes
+    - General (Editor): Fixed an issue that could cause errors when trying to
+      read a google-services.json file with unicode characters in its path.
+    - General (Editor, iOS): Added support for patching Xcode projects in
+      Unity 2019.3+.
+    - General: Fixed a race that could lead to a crash when gabarge collecting
+      FirebaseApp objects.
+    - General: Updated Play Services Resolver from 1.2.116 to 1.2.121
+      For more information, see [this document](https://github.com/googlesamples/unity-jar-resolver/blob/master/CHANGELOG.md#version-12121---jun-27-2019).
+      Added support for the [Jetpack Jetifier](https://developer.android.com/studio/command-line/jetifier)
+      , this allows the use of legacy Android support libraries with the latest
+      release of Google Play Services that uses AndroidX.
+    - Crashlytics (Android): Fixed a crash when logging large call stacks.
+    - Crashlytics (Android): Fixed a crash in exception logging when the
+      application is shutting down.
+    - Instance ID (Android): Fixed a crash when destroying InstanceID objects.
+    - Instance ID: Fixed a crash if multiple Instance ID objects are created and
+      destroyed quickly.
+    - Dynamic Links: Added support for custom domains.
+    - Database (Editor): Moved Realtime Database to a C++ implementation on
+      desktop to improve reliability across different Unity versions.
+    - Database (Editor): Moved transaction callbacks to the main thread to
+      mirror Android and iOS.
+    - Database: Added a way to configure log verbosity of Realtime Database
+      instances.
+
+### 6.1.1
+  - Overview
+    - Fixed an issue when generating Firebase config files on Windows.
+  - Changes
+    - General (Editor): Fixed an issue when generating Firebase config files on
+      Windows.
+    - General (Editor): Upgraded Play Services Resolver to from 1.2.115 to
+      1.2.116. For more information see [this
+      document](https://github.com/googlesamples/unity-jar-resolver/blob/master/CHANGELOG.md#version-12115---jun-7-2019).
+
+### 6.1.0
+  - Overview
+    - Added Auth credential persistence on Desktop, fixed and cleaned up some
+      documentation, converted testapps to use ContinueOnMainThread(), fixed
+      issues in Auth and Database, and added additional information to
+      Messaging notifications.
+  - Changes
+    - General (Editor): Removed Firebase Invites documentation from the
+      in-editor documentation.
+    - General (Editor): Fixed an issue with resource generation when Firebase
+      plugin files have been moved from their default locations.
+    - General (iOS): Fixed an issue where connections via NSURLSession
+      (used internally by the iOS SDK) can be prematurely closed by the client
+      if NSAppTransportSecurity is set to YES in the Info.plist and
+      NSAllowsArbitraryLoadsInWebContent is not set. This can be fixed by
+      setting NSAllowsArbitraryLoadsInWebContent  to the same value as
+      NSAppTransportSecurity.
+    - General (Editor): Upgraded Play Services Resolver to from 1.2.109 to
+      1.2.115. For more information see [this
+      document](https://github.com/googlesamples/unity-jar-resolver/blob/master/CHANGELOG.md#version-12115---may-28-2019).
+    - Auth (Desktop): User's credentials will now persist between sessions.  See
+      the [documentation](http://firebase.google.com/docs/auth/unity/manage-users#persist_a_users_credential)
+      for more information.
+    - Auth (Desktop): As part of the above change, if you access CurrentUser
+      immediately after creating the FirebaseAuth instance, it will block until
+      the saved user's state is finished loading.
+    - Auth (Desktop): Fixed an issue where Database/Functions/Storage might not
+      use the latest auth token immediately after sign-in.
+    - Auth (Android): Fixed an issue where an error code could get reported
+      incorrectly on Android.
+    - Crashlytics, Functions: Fixed an issue that could cause a crash during
+      shutdown due to the destruction order of plugins being nondeterministic.
+    - Database (iOS): Fixed a race condition that could cause a crash
+      when cleaning up database listeners on iOS.
+    - Database (iOS): Fixed an issue where long (64-bit) values could get
+      written to the database incorrectly (truncated to 32-bits) on 32-bit
+      devices.
+    - Messaging (Android): Added channel_id to Messaging notifications.
+
+### 6.0.0
+  - Overview
+    - Released
+      [Crashlytics](https://firebase.google.com/docs/crashlytics/get-started?platform=unity)
+      as generally available (GA); added Task.ContinueWithOnMainThread(); fixed
+      issues in the Android Resolver, iOS Resolver, Auth, Database, Messaging,
+      and Remote Config; removed Firebase Invites, removed deprecated methods in
+      Firebase Remote Config, and deprecated a method in Firebase Analytics.
+  - Changes
+    - Updated [Firebase
+      iOS](https://firebase.google.com/support/release-notes/ios#6.0.0) and
+      [Firebase
+      Android](https://firebase.google.com/support/release-notes/ios#2019-05-07)
+      dependencies.
+    - Crashlytics (iOS/Android): [Crashlytics for
+      Unity](https://firebase.google.com/docs/crashlytics/get-started?platform=unity)
+      is now generally available (GA). Get the next evolution with BigQuery
+      exports, Jira integration, and more. To migrate from Fabric Crashlytics
+      for Unity to Firebase Crashlytics, follow the [migration
+      guide](https://firebase.google.com/docs/crashlytics/migrate-from-fabric).
+    - Added an extension method, `Task.ContinueWithOnMainThread()`, which
+      forces the continuation of asynchronous operations to occur in the Unity
+      main thread rather than in a background thread.
+    - General: Upgraded Play Services Resolver to from 1.2.104 to 1.2.109. For
+      more information see [this
+      document](https://github.com/googlesamples/unity-jar-resolver/blob/master/CHANGELOG.md#version-12109---may-6-2019).
+    - General (Android): Added support for Android SDK installed directly in
+      Unity 2019.
+    - General (iOS): Fixed issues generating projects without using Cocoapods.
+    - Database (iOS/Android): Fixed an issue where integrating the SDK greatly
+      increased the size of your app.
+    - Database: Fixed exception handling during listener events.
+    - Remote Config: Fixed an issue parsing boolean values.
+    - Auth (Desktop): Fixed a crash when attempting to call Game Center
+      authentication methods from the Unity editor.
+    - Messaging (iOS/Android): Fix an issue where Subscribe and Unsubscribe
+      never returned if the API was configured not to receive a registration
+      token.
+    - Invites: Removed Firebase Invites, as it is no longer supported.
+    - Remote Config: Removed functions using config namespaces.
+    - Analytics: Deprecated SetMinimumSessionDuration.
+
+### 5.7.0
+  - Overview
+    - Fixed an issue with escape characters in Auth, deprecated functions
+      in Remote Config, and fixed an issue in the Android Resolver.
+  - Changes
+    - Auth: Fixed UserProfile.PhotoUrl removing percent encoded characters when
+      being set.
+    - Remote Config: Config namespaces are now deprecated. You'll need to switch
+      to methods that use the default namespace.
+    - General (Android): Fixed an exception on resolution in some versions of
+      Unity 2017.4 by changing how Android ABI selection is handled.
+
+### 5.6.1
+  - Overview
+    - Fixed race condition on iOS SDK startup and fixed some issues in the
+      Android Resolver.
+  - Changes
+    - General (iOS): Updated to the latest iOS SDK to fix a crash on
+      firebase::App creation caused by a race condition.  The crash could occur
+      when accessing the [FIRApp firebaseUserAgent] property of the iOS FIRApp.
+    - General (Android): Fixed Java version check in Android resolver when using
+      Java SE 12 and above.
+    - General (Android): Whitelisted Unity 2017.4 and above for ARM64 builds.
+      Previously required ARM64 libraries would be stripped from all Unity 2017
+      builds resulting in a DllNotFoundException.
+
+### 5.6.0
+  - Overview
+    - Added Game Center sign-in to Auth and fixed intermittent crashes due to
+      garbage collection.
+  - Changes
+    - Auth (iOS): Added Game Center authentication.
+    - General: Fixed intermittent crashes caused when multiple native objects
+      were garbage-collected at the same time.
+
+### 5.5.0
+  - Overview
+    - Added support for
+      [Crashlytics](https://firebase.google.com/docs/crashlytics/get-started#unity)
+      as a Beta release, deprecated Firebase Invites, and updated the Android
+      Resolver.
+  - Changes
+    - Crashlytics:
+      [Crashlytics for Unity](https://firebase.google.com/docs/crashlytics/get-started#unity)
+      is now available as a Beta release. Get the next evolution with BigQuery
+      exports, Jira integration, and more. To migrate from Fabric Crashlytics
+      for Unity to Firebase Crashlytics, follow the
+      [migration guide](https://firebase.google.com/docs/crashlytics/migrate-from-fabric).
+    - General (Android): Updated to using version 1.2.101 of the Android
+      Resolver. Prompt the user before the resolver runs for the
+      first time and allow the user to elect to disable from the prompt.
+    - Invites: Firebase Invites is deprecated. Please refer to
+      https://firebase.google.com/docs/invites for details.
+
+### 5.4.4
+  - Overview
+    - Fixed bugs in iOS/Android Resolver components, Realtime Database on
+      mobile, and Cloud Functions on Android; fixed a general iOS bug; and fixed
+      issues with Unity 5.6 and Unity 2018.3 and newer.
+  - Changes
+    - General (Android): Fixed packaging of AARs in the Android Resolver when
+      using Unity 2018 and a recent version of Gradle.
+    - General: Reduced auto-resolution frequency in iOS and Android Resolvers,
+      speeding up builds and reducing memory footprint.
+    - General: Fixed an issue with version number handling in iOS and Android
+      Resolvers.
+    - General (iOS): Fixed an issue that caused apps to crash when exiting the
+      app.
+    - General: Fixed parsing of Unity 5.6 metadata.
+    - General: Workaround for Unity 2018.3 and newer ignoring the "Any"
+      platform.
+    - Realtime Database (mobile): Fixed an issue where certain DataSnapshots
+      were missing data.
+    - Cloud Functions (Android): Fixed an issue with error handling.
+  - Known Issues
+    - The garbage collection race condition mentioned	in version 5.4.2 still
+      occurs in Firebase Auth, Database, Storage, and Instance ID. To work
+      around the issue until a fixed is released, keep a reference to the
+      Firebase object instance (for example, FirebaseAuth.DefaultInstance) to
+      prevent garbage collection.
+
+### 5.4.3
+  - Overview
+    - Bug fix for Firebase Storage on iOS.
+  - Changes
+    - Storage (iOS): Fixed an issue when downloading files with `GetBytesAsync`.
+
+### 5.4.2
+  - Overview
+    - Updated iOS and Android dependency versions, and fixed issues in the
+      Android Resolver, FirebaseApp, Auth on Android, Database, and Dynamic
+      Links on iOS.
+  - Changes
+    - General (Android): Fixed an infinite loop in Android Resolver when using
+      auto-resolution.
+    - App: Fixed a race condition causing an occasional crash when FirebaseApp
+      is garbage collected.
+    - Auth (Android): Removed an irrelevant error about the Java class
+      FirebaseAuthWebException.
+    - Database: Fixed a race condition causing an occasional crash when
+      FirebaseDatabase is garbage collected.
+    - Dynamic Links (iOS): Fixed Dynamic Links iOS when using Unity Cloud
+      builds.
+  - Known Issues
+    - The garbage collection race condition mentioned above still occurs in
+      Firebase Auth, Storage, and Instance ID. To work around the issue until a
+      fixed is released, keep a reference to the Firebase object instance (for
+      example, FirebaseAuth.DefaultInstance) to prevent garbage collection.
+
+### 5.4.1
+  - Overview
+    - Fix for Google Analytics iOS dependency.
+  - Changes
+    - Analytics (iOS): Fixed issue with Google Analytics and Google App
+      Measurement mismatch.
+
+### 5.4.0
+  - Overview
+    - Improved support for .NET 4.x Unity projects, exposed method to enable
+      Realtime Database peristence, bug fix for link shortening in
+      Dynamic Links.
+  - Changes
+    - General: Added plugins that are pre-configured for import into .NET 4.x
+      Unity projects.
+    - Realtime Database: Exposed method to enable persistence on mobile
+      platforms.
+    - Dynamic Links (Android): Fixed short link generation failing with
+      "error 8".
+
+### 5.3.1
+  - Overview
+    - Updated iOS and Android dependency versions, bug fix for Invites,
+      improved Android module initialization, fixed issue with Unity 2018.3
+      beta, added C# symbols and upgraded the Play Services Resolver.
+  - Changes
+    - General: Added symbols for all C# assemblies.
+    - General (Android): Improved module initialization so that the Unity SDK
+      does not attempt to use Android libraries unless the C# assembly is
+      included.  For example, this allows users of the Firebase Analytics plugin
+      to use the `firebase-messaging` Android library without the Firebase Unity
+      Messaging component.
+    - General (Editor): Fixed loading of the Firebase.Editor.dll component in
+      Unity 2018.3.0b2
+    - General (Editor): Updated the Play Services Resolver from version 1.2.88
+      to 1.2.91, see the
+      [GitHub changelog](https://github.com/googlesamples/unity-jar-resolver/blob/master/CHANGELOG.md)
+      for details.
+    - General (Editor): Fixed the Android "Open in Console" button of the
+      Firebase window (accessible under the **Window > Firebase** menu option)
+      to correctly open the Firebase console in a web browser when the selected
+      target platform is not Android in Unity 5.6 and above.
+    - Invites (Android): Fixed an exception when the Android Minimum Version
+      code option is used on the Android.
+
+### 5.3.0
+  - Overview
+    - Fixed bugs in Database, Functions, Storage, and the Android Resolver;
+      changed minimum Xcode version to 9.4.1.
+  - Changes
+    - General (iOS): Minimum Xcode version is now 9.4.1.
+    - General (Android): Fixed an issue resolving additional types of version
+      conflicts in the Android Resolver.
+    - General (Android): Fixed a hang in Unity 5.6.
+    - Database (Desktop): Fixed issues in ChildListener.
+    - Database (Desktop): Fixed a crash related to objects being garbage
+    - Functions (Android): Fixed an issue when a function returns an array.
+    - Storage: Fixed issues when transactions are canceled in .NET 4.6.
+  - Known Issues
+    - Dynamic Links (Android): Shortening dynamic links fails with "Error 8".
+
+### 5.2.1
+  - Overview
+    - Updated Android and iOS dependency versions, and fixed bugs in App, Auth,
+      Database, and the Android Resolver.
+  - Changes
+    - General (Android): Fixed an issue resolving certain types of version
+      conflicts in the Android Resolver.
+    - App: Now throws an exception if any Firebase libraries are initialized
+      while `CheckAndFixDependenciesAsync()` is still in progress.
+    - Auth, Database: Fixed a race condition returning Tasks when calling
+      the same method twice in quick succession.
+    - Database (iOS/Android): Fixed a crash in DatabaseReference/Query during
+      garbage collection (and other times).
+
+### 5.2.0
+  - Overview
+    - Fixed bugs in Auth, changes to Functions, Messaging and Android builds.
+  - Changes
+    - Auth: Fixed per-frame allocation in the token refresh logic.
+    - Auth (Android): Fixed a crash in
+      `FirebaseUser.UpdatePhoneNumberCredentialAsync()`.
+    - Functions: Added a way to specify which region to run the function in.
+    - Messaging: Added `SubscribeAsync` and `UnsubscribeAsync`, which return
+      Tasks, and deprecated `Subscribe` and `Unsubscribe`.
+    - General (Android): Fixed a null reference in the Google Play Services
+      availability checker.
+    - General (Android): Fixed Android problems merging Android library
+      manifests in Unity 2018.
+    - General (Android): Added arm64-v8a build support.
+
+### 5.1.1
+  - Overview
+    - Updated Android and iOS dependency versions only.
+
+### 5.1.0
+  - Overview
+    - Changes to Analytics, Auth, and Database; and added Cloud Functions for
+      Firebase.
+  - Changes
+    - Android (General): Fixed build issues due to the broken AndroidManifest
+      merger in Unity 2018.x.
+    - Android (General): Improved compatibility with plugins that use Google
+      Play services versions older than 15.0.0.
+    - Android (General): Improved dependency resolution when the Android SDK
+      path is not configured.
+    - Analytics: Added `ResetAnalyticsData()` to clear all analytics data
+      for an app from the device.
+    - Analytics: Added `GetAnalyticsInstanceIdAsync()` which allows developers
+      to retrieve the current app's analytics instance ID.
+    - Auth: Linking a credential with a provider that has already been linked
+      now produces an error.
+    - Auth (iOS): Fixed crashes in
+      `FirebaseUser.LinkAndRetrieveDataWithCredential()` and
+      `FirebaseUser.ReauthenticateAndRetrieveData()`.
+    - Auth (iOS): Fixed photo URL never returning a value on iOS.
+    - Auth (Android): Fixed setting the profile photo URL with
+      `FirebaseUser.UpdateUserProfile()`.
+    - Database: Added support for ServerValues in SetPriority methods.
+    - Database (iOS / Android): Now implemented as a wrapper around Firebase iOS
+      and Android SDKs, to add offline support and increase reliability and
+      performance.
+    - Functions: Added support for Cloud Functions for Firebase on iOS, Android,
+      and desktop.
+
+### 5.0.0
+  - Overview
+    - Renamed the static libraries to include firebase in their name,
+      removed deprecated methods in App, Auth, and Storage,
+      and exposed new APIs in Dynamic Links and Invites.
+  - Changes
+    - General: Library names that previously did not mention Firebase now have
+      a "FirebaseCpp" prefix. For example, Auth.dll is now FirebaseCppAuth.dll.
+    - General (Android): Improved error handling when device is out of space.
+    - App: Removed deprecated method SetLogLevel.
+    - Auth: Removed deprecated properties PhotoUri and RefreshToken.
+    - Dynamic Links: Added MatchStrength to ReceivedDynamicLink, that describes
+      the strength of the match for the received link.
+    - Invites: Added MatchStrength to InvitesReceivedEventArgs, that describes
+      the strength of the match for the received invite.
+    - Storage: Deprecated StorageMetadata.DownloadUrl and
+      StorageMetadata.DownloadUrls.
+      Please use StorageReference.GetDownloadUrlAsync() instead.
+    - Messaging: Added an optional initialization options struct. This can be
+      used to suppress the prompt on iOS that requests permission to receive
+      notifications at start up. Permission can be requested manually using the
+      function `FirebaseMessaging.RequestPermissionAsync()`.
+
+### 4.5.2
+  - Overview
+    - Fixed a build issue, and bugs in FirebaseApp, Auth and Linux Desktop.
+  - Changes
+    - Common: Updated Parse .NET 4.6 forwarding DLLs to fix build issues when
+      using IL2CPP with the .NET 4.6 framework.  The update works with IL2CPP in
+      Unity 2017.2 and beyond.  IL2CPP builds still fail in Unity 2017.1
+      as the IL2CPP distribution bundled with Unity 2017.1 does not correctly
+      support type forwarding DLLs.
+    - Common: Root cert installation is now *only* performed in plugins that
+      use the .NET network stack (currently only the Realtime Database).  This
+      should resolve exceptions on initialization that reference
+      `/System/Library/Frameworks/CoreFoundation.framework/CoreFoundation`.
+    - Common (Desktop): Fixed crash when using Firebase Auth, Storage,
+      Realtime Database and Remote Config on Linux.
+    - Common (Android): Loading default AppOptions is now more robust on Android
+      resulting in errors reported for missing fields rather than exiting the
+      application with an error in the native library.
+    - Auth: Fixed regression in release 4.5.0 which led to an unhandled
+      exception on auth token refresh.
+  - Known Issues
+    - IL2CPP builds will fail in Unity 2017.1 as the IL2CPP distribution bundled
+      with Unity 2017.1 does not correctly support type forwarding DLLs.
+
+### 4.5.1
+  - Overview
+    - Fixed some build issues, fixed bugs in Database, Dynamic Links,
+      Invites, Remote Config, and Storage, and exposed new APIs in Auth on
+      Desktop and Analytics.
+  - Changes
+    - Auth (Desktop): Added support for accessing user metadata.
+    - Analytics: Added SetMinimumSessionDuration() and
+      SetSessionTimeoutDuration().
+    - Desktop: Fixed a bug when using iOS GoogleServicesInfo.plist config
+      settings on desktop, which prevented "play in editor" mode from loading
+      the correct project settings. (Only affected users who developed for iOS
+      and not Android, who were using Desktop).
+    - Dynamic Links and Invites (Android): Fixed an issue with Dynamic Links
+      getting lost when calling CheckAndFixDependenciesAsync.
+    - Messaging: Added TokenRegistrationOnInitEnabled property to enable or
+      disable auto-token generation.
+    - Remote Config: Fixed a bug causing incorrect reporting of success or
+      failure during a Fetch().
+    - Storage: Fixed a bug in Storage that was unescaping '/' characters in
+      URL returned by StorageReference.GetDownloadUrlAsync(). This caused an
+      "Invalid HTTP method/URL pair" error when attempting to download using the
+      URL.
+    - General (Android): Fixed a bug causing Unity to hang due to FirebaseApp
+      initializing on the wrong thread, when building in -batchmode.
+
+### 4.5.0
+  - Overview
+    - Desktop workflow support for some features, Google Play Games
+      authentication on Android, improved editor support, and changes to Auth,
+      Instance ID and Storage.
+  - Changes
+    - General: Added support for plugins within the Unity Editor context.
+    - Auth, Remote Config: Stub implementations have been replaced with
+      functional desktop implementations on Windows, OS X and Linux.
+    - Auth (Android): Added support for Google Play Games authentication.
+    - Auth, Instance ID: Fixed issues when destroying/finalizing Firebase
+      objects.
+    - Storage: Added Md5Hash to StorageMetadata.
+    - Storage (iOS / Android): Now implemented as wrapper around Firebase iOS
+      and Android SDKs, to increase reliability and performance.
+  - Known Issues
+    - On Windows and Mac OS, only 64-bit builds are supported (x86_64), not
+      32-bit.
+
+### 4.4.3
+  - Overview
+    - Bug fixes in Dynamic Links, Invites, Remote Config and Storage.
+  - Changes
+    - Dynamic Links (iOS): Now fetches the invite ID when using universal links.
+    - Dynamic Links (iOS): Fixed crash on failure of dynamic link completion.
+    - Dynamic Links (iOS): Fixed an issue where some errors weren't correctly
+      reported.
+    - Invites (Editor): Fixed SendInvite never completing.
+    - Remote Config (iOS): Fixed an issue where some errors weren't correctly
+      reported.
+    - Storage: Fixed Metadata::content_language returning the wrong data.
+    - Storage (iOS): Reference paths formats are now consistent with other
+      platforms.
+    - Storage (iOS): Fixed an issue where trying to upload to a non-existent
+      path would not complete the Task.
+    - Storage (iOS): Fixed a crash when a download fails.
+    - Editor: Fixed a crash in the editor when using .NET 4.6 with certain
+      versions of Unity 2017.
+    - General (Android): Fixed an issue when Google Play Services was out of
+      date and would hang after returning from the update workflow.
+
+### 4.4.2
+  - Overview
+    - Updated Firebase iOS dependency version.
+  - Changes
+    - General (iOS): Updated Firebase iOS Cocoapod dependency version.
+
+### 4.4.1
+  - Overview
+    - Bug fixes for .Net 4.x, Storage, Realtime Database, and Instance ID on
+      iOS.
+  - Changes
+    - Instance ID (iOS): GetTokenAsync no longer fails without an APNS
+      certificate, and no longer forces registering for notifications.
+    - Storage: Added support for a progress listener and cancellation
+      token to `GetBytesAsync`.
+    - Storage: Fixed an issue where the auth token was not refreshed when the
+      application is started.
+    - Realtime Database: Fixed an issue where the auth token was not refreshed
+      when the application is started.
+    - General (Android): Fixed a bug with handling transitive dependencies in
+      the Android Resolver, where there was a common dependency name from
+      different sources.
+    - General (Android): Fixed Android Resolver reporting non-existent
+      conflicts.
+    - General: Fixed 'get_realtimeSinceStartup' Assert in development builds.
+    - General: Fixed issues when using types added in .NET 4.x such as Tuple.
+      This requires switching to the appropriate Unity.Compat.dll when using
+      .NET 4.x (see Known Issues).
+
+### 4.4.0
+  - Overview
+    - Support for Instance ID, and an Auth fix.
+  - Changes
+    - Instance ID: Added Instance ID library.
+    - Auth: Fixed user metadata property names.
+
+### 4.3.0
+  - Overview
+    - General threading / callback and other bug fixes and new features in Auth.
+  - Changes
+    - General: Fixed some invalid calls to Unity APIs from threads.
+    - General (Editor): Changed Firebase settings window to work with Unity 4.x
+    - General (Editor): Fixed GoogleServices-Info.plist not being read in batch
+      mode.
+    - Auth: Fixed a bug due to a race condition fetching the authentication
+      token which could cause Database and Storage operations to hang.
+    - Auth: Added support for accessing user metadata.
+    - Remote Config (Android): Fixed a bug where remote config values retrieved
+      were misclassified as coming from a default config vs an active config.
+    - Database: Fixed hang when Time.timeScale is 0.
+    - Storage: Fixed hang when Time.timeScale is 0.
+
+### 4.2.1
+  - Overview
+    - Bug fixes for Real-Time Database, Storage, API initialization in .NET 4.x,
+      and improvements to the iOS and Android Resolver components.
+  - Changes
+    - General (Android): Fixed Android resolution when a project path contains
+      apostrophes.
+    - General (iOS): Increased speed of iOS resolver dependency loading.
+    - General (Android): Removed legacy resolution method from Android Resolver.
+      It is now only possible to use the Gradle or Gradle prebuild resolution
+      methods.
+    - General (Android): Fixed Android Resolution issues with OpenJDK by
+      updating the Gradle wrapper to 4.2.1.
+    - General (Android): Android resolution now also uses
+      gradle.properties to pass parameters to Gradle in an attempt to workaround
+      problems with command line argument parsing on Windows 10.
+    - General: Fixed some invalid calls to Unity APIs from threads, when using
+      .NET 4.x which is added in Unity 2017.
+    - Database: Fixed hang in Real-Time Database when Time.timeScale is 0 in
+      Unity 2017.
+    - Storage: Fixed hang in Storage when Time.timeScale is 0 in Unity 2017.
+    - Storage: Fixed file download in Unity 2017.2.
+
+### 4.2.0
+  - Overview
+    - Added URL support in Messaging, improved the initialization process on
+      Android and fixed bugs in the iOS and Android build systems, Analytics,
+      Auth, Database and Messaging.
+  - Changes
+    - Messaging: Messages sent to users can now contain a link URL.
+    - Auth: Added more specific error codes for failed operations.
+    - Auth (iOS): Phone Authentication no longer requires push notifications.
+      When push notifications aren't available, reCAPTCHA verification is used
+      instead.
+    - Analytics (iOS): Fixed bug which prevented the user ID and user
+      properties being cleared.
+    - Database: Fixed issue where user authentication tokens are ignored if
+      the application uses the database API before initializing authentication.
+    - Messaging (Android): Fixed a bug which prevented the message ID field
+      being set.
+    - General (iOS): Fixed incorrect processing of framework modulemap files
+      which resulted in the wrong link flags being generated when Cocoapod
+      project integration is enabled.
+    - General (Android): Added support for Google Play services dependency
+      resolution when including multiple plugins (e.g AdMob, Google Play Games
+      services) that require different versions of Google Play services.
+    - General (Android): Fixed Android dependency resolution when local
+      project paths contain spaces.
+    - General (Android): Fixed race condition in Android Resolver which could
+      cause a hang when running auto-resolution.
+    - General (Android): Forced Android Gradle resolution process to not use
+      the Gradle daemon to improve reliability of the process.
+    - General (Android): Added a check for at least JDK 8 when running Android
+      dependency resolution.
+    - General: Fixed MonoPInvokeCallbackAttribute incorrectly being added to
+      the root namespace causing incompatibility with plugins like slua.
+  - Known Issues
+    - General (Android): Unity (not the Firebase SDK) has a bug that causes
+      applications to crash after running the Google Play services update on
+      Android 8.0 Oreo devices.
+
+### 4.1.0
+  - Overview
+    - Bug fixes for the iOS build system, Auth, Messaging, and Remote Config.
+  - Changes
+    - General (iOS): Fixed spurious errors on initialization of FirebaseApp.
+    - General (iOS): Fixed iOS build with Cocoapod Project integration enabled.
+      This affected all iOS builds when using Unity 5.5 or below or when using
+      Unity Cloud Build.
+    - General (iOS): Fixed issue which prevented the use of Unity Cloud Build
+      with Unity 5.6 and above.  Unity Cloud Build does not open generated
+      Xcode workspaces so we force Cocoapod Project integration in the
+      Unity Cloud Build environment.
+    - Auth (Android): Now throws an exception if you call GetCredential without
+      an Auth instance created.
+    - Messaging (Android): Fixed a bug resulting in FirebaseMessages not having
+      their MessageType field populated.
+    - Messaging (iOS): Fixed a race condition if a message is received before
+      Firebase Cloud Messaging is initialized.
+    - Messaging (iOS): Fixed a bug detecting whether the notification was opened
+      if the app was running in the background.
+    - Remote Config: When listing keys, the list now includes keys with defaults
+      set, even if they were not present in the fetched config.
+
+### 4.0.3
+  - Overview
+    - Bug fixes for Database, Dynamic Links, Messaging, iOS SDK compatibility,
+      .NET 4.x compatibility.
+  - Changes
+    - General: Added support for .NET 4.x in the System.Task implementation
+      used by the SDK.  The VersionHandler editor plugin is now used to switch
+      Task implementations based upon the selected .NET version.
+    - General: Fixed root cert installation failure if Firebase is initialized
+      after other network operations are performed by an application.
+    - General: Improved native shared library name mangling when targeting
+      Linux.
+    - General (iOS): Fixed an issue which resulted in custom options not being
+      applied to FirebaseApp instances.
+    - General (iOS): Fixed a bug which caused method implementation look ups
+      to fail when other iOS SDKs rename the selectors of swizzled methods.
+      This could result in a hang on startup when using some iOS SDKs.
+    - Dynamic Links (Android): Fixed task completion if short link
+      creation fails.
+    - Database: Fixed a bug that caused database connections to fail when
+      using the .NET 4.x framework in Unity 2017 on OSX.
+    - Database: Fixed a bug where large data updates could be ignored.
+    - Messaging (iOS): Fixed message handling when messages they are received
+      via the direct channel to the FCM backend (i.e not via APNS).
+
+### 4.0.2
+  - Overview
+    - Bug fixes for Analytics, Auth, Dynamic Links, and Messaging;
+      added support for Android SDK 25.
+  - Changes
+    - General (Android): Fixed a manifest issue with Android SDK tools and
+      support library >= 25.x.
+    - General (Android): Fixed an issue which caused Analytics to not be
+      enabled in all plugins.
+    - General (Android): Fixed native libraries not being included in built
+      APKs when using the internal build system in Unity 2017.
+    - Analytics (Android): Fix SetCurrentScreen to work from any thread.
+    - Auth (iOS): Fixed user being invalidated when linking a credential fails.
+    - Dynamic Links: Fixed an issue which caused an app to crash or not receive
+      a Dynamic Link if the link is opened when the app is installed and not
+      running.
+    - Messaging (iOS): Fixed a crash when no notification event is registered.
+    - Messaging: Fixed token notification event occasionally being raised twice
+      with the same token.
+
+## 4.0.1
+  - Overview:
+    - Bug fixes for Dynamic links and Invites on iOS, the Google Play
+      services updater when using Cloud Messaging and Cloud Messaging on iOS.
+  - Changes:
+    - Cloud Messaging (Android): Fixed crash when updating Google Play services
+      in projects that include the Cloud Messaging functionality.
+    - Cloud Messaging (iOS): Fixed an issue where library would crash on start
+      up if there was no registration token.
+    - Dynamic Links & Invites (iOS): Fixed an issue that resulted in apps not
+      receiving a link when opening a link if the app is installed and not
+      running.
+
+## 4.0.0
+  - Overview
+    - Added support for phone number authentication, access to user metadata,
+      a standalone dynamic links plugin and bug fixes.
+  - Changes
+    - Auth: Added support for phone number authentication.
+    - Auth: Added the ability to retrieve user metadata.
+    - Auth: Moved token notification into a separate token change event.
+    - Dynamic Links: Added a standalone Unity plugin separate from Invites.
+    - Invites (iOS): Fixed an issue in the analytics SDK's method swizzling
+      which resulted in dynamic links / invites not being sent to the
+      application.
+    - Messaging (Android): Fixed a regression introduced in 3.0.3 which caused
+      a crash when opening up a notification when the app is running in the
+      background.
+    - Messaging (iOS): Fixed interoperation with other users of local
+      notifications.
+    - General (Android): Fixed crash in some circumstances after resolving
+      dependencies by updating Google Play services.
+    - General (Editor): Fixed iOS resolver and Jar resolver plugins getting
+      disabled when importing multiple Firebase, Google Play Games or AdMob
+      plugins into a project.
+    - General (iOS): Added support for Cocoapod builds that use Xcode
+      workspaces in Unity 5.6 and above.
+    - General (iOS): Fixed Cocoapod version pinning which was broken in 3.0.3
+      causing the SDK to pull in the most recent Firebase iOS SDK rather than
+      the correct version for the current Unity SDK release.
+
+## 3.0.3
+  - Overview
+    - Bug fixes for Auth.
+  - Changes
+    - Auth: Fixed a crash caused by a stale memory reference when a
+      firebase::auth::Auth object is destroyed and then recreated for the same
+      App object.
+    - Auth: Fixed potential memory corruption when AuthStateListener is
+      destroyed.
+    - Auth: Fixed occasional crash in Unity editor when using Auth sign-in
+      methods.
+## 3.0.2
+  - Overview
+    - Bug fixes for Auth, Database, Invites, Messaging, Storage, and a general
+      fix, plus improved compatibility with Unity 5.6 when using the GoogleVR
+      SDK.
+  - Changes
+    - General (Android): Fixed unhandled exception if FirebaseApp creation
+      fails due to an out of date Google Play services.
+    - General (Android): Fixed Google Play Services updater crash when clicking
+      outside of the dialog on Android 4.x devices.
+    - Auth: Fixed user being invalidated when linking a credential fails.
+    - Auth: Fixed an occasional crash when events are fired.  This could
+      manifest in a crash when signing in.
+    - Auth: Deprecated FirebaseUser.RefreshToken.
+    - Database: Fixed an issue which caused the application to manually
+      refresh the auth token.
+    - Messaging: Fixed incorrectly notifying the app of a message when a
+      notification is received while the app is in the background and the app
+      is then opened by via the app icon rather than the notification.
+    - Invites (iOS): Fixed an issue which resulted in the app delegate method
+      application:openURL:sourceApplication:annotation: not being called
+      when linking the invites library.  This caused the Facebook SDK login
+      flow to fail.
+    - Storage: Fixed a bug that prevented the construction of Metadata without
+      a storage reference.
+    - Editor (Android): Fixed referenced Android dependencies in maven
+      where the POM references a specific version e.g '[1.2.3]'.
+    - Editor (iOS): Improved compatibility with Unity 5.6's Cocoapods support
+      required to use the GoogleVR SDK.
+    - Editor (Android): Fixed Android dependency resolution when the bundle ID
+      is modified.
+
+## 3.0.1
+  - Overview
+    - Fixed Google Play Services checker on Android and improved Android
+      build configuration checks.
+  - Changes
+    - (Android): Fixed Google Play Services checker on Android.  Previously
+      when Google Play Services was out of date,
+      FirebaseApp.CheckDependencies() incorrectly returned
+      DependencyStatus.Available.
+    - Editor (Android): Added check for auto-resolution being enabled in the
+      Android Resolver.
+      If auto-resolution is disabled by the user or by another plugin
+      (e.g Google Play Games), the user is warned about the configuration
+      problem and given the opportunity to fix it.
+    - (Android) Fixed single architecture builds when using Gradle.
+    - (Android) Resolved an issue which caused the READ_PHONE_STATE
+      permission to be requested.
+
+## 3.0.0
+  - Overview
+    - Streamlined editor integration, build support and some bug fixes for
+      Auth, Database, Messaging, Invites and Storage.
+  - Changes
+    - Added link.xml files to allow byte stripping to be enabled.
+    - Fixed issues with Android builds when targeting a single ABI.
+    - Auth: Fixed race condition when accessing user properties.
+    - Auth: Added SetCurrentScreen() method.
+    - Database: Resolved issue where large queries resulted in empty results.
+    - Database: Fixed an issue which prevented saving boolean values.
+    - Mesaging: Fixed issue with initialization on iOS that caused problems
+      with other SDKs.
+    - Invites: Fixed issue with initialization on iOS that caused problems
+      with other SDKs.
+    - Storage: Fixed a bug which prevented download URLs from containing
+      slashes.
+    - Storage: Fixed a bug on iOS which caused networking to fail when the
+      full .NET 2.0 is used.
+    - Editor: Added process of cleaning stale / moved files when upgrading
+      to a newer plugin version.
+    - Editor: Automated Cocoapod tool installation and improved Pod tool
+      detection when using RVM.  This enables iOS projects to build with
+      Unity Cloud Build.
+    - Editor: Added support for pods that reference static libraries.
+    - Editor: Bundle ID selection dialog for iOS and Android is now displayed
+      when the project bundle ID doesn't match the Firebase configuration.
+    - Editor: Added experimental support for building with Proguard stripping
+      enabled.
+    - Editor: Fixed Android package (AAR) synchronization when the project
+      bundle ID is modified.
+    - Editor: Fixed clean up of stale AAR dependencies when users change
+      Android SDK versions.
+    - Editor: Android Jar Resolver now remembers - for the editor session -
+      which AARs to keep when new AARs are available compared to what is
+      included in a project.
+    - Editor: Added support for projects that use Google Play Services at
+      different versions.
+    - Editor: Fixed minor issue with the Firebase window not being repainted as
+      Firebase configuration files are added to or removed from a project.
+    - Desktop: Added fake - but valid - JWT in the Authentication mock.
+
+
+## 1.1.2
+  - Overview
+    - Fix for a major bug causing Auth to hang, as well as other bug fixes.
+  - Changes
+    - Auth: Fixed a potential deadlock when running callbacks registered via
+      Task.ContinueWith()
+    - Auth: (Android) Fixed an error in `Firebase.Auth.FirebaseUser.PhotoUrl`.
+    - Messaging: (iOS) Removed hard dependency on Xcode 8.
+    - Messaging: (Android) Fixed an issue where the application would receive an
+      empty message on startup.
+
+## 1.1.1
+  - Overview
+    - Bug fixes for the editor plugin, Firebase Authentication, Messaging,
+      Invites, Real-Time Database and Storage.
+  - Changes
+    - Fixed an issue in the editor plugin that caused an exception to be
+      thrown when the project bundle ID didn't match a bundle ID in the Android
+      configuration file (google-services.json).
+    - Fixed a bug in the editor plugin that caused a stack overflow when
+      multiple iOS configuration files (GoogleServices-Info.plist) are
+      present in a project.
+    - Auth: (Android) Fixed an issue that caused a Task to never complete
+      when signing in while a user is already signed in.
+    - Auth: Renamed the Auth.UserProfile.ProtoUri property to
+      Auth.UserProfile.ProtoUrl in order to be consistent with the other URL
+      properties across the SDK.
+    - Messaging / Invites: Fixed an issue with method swizzling that caused
+      some of the application's UIApplicationDelegate methods to not be called.
+    - Storage: The Storage  plugin was using a Unity API that is only
+      present in Unity 5.4. We have modified the component so that it is now
+      backwards compatible with previous versions of Unity.
+    - Real-Time Database: Fixed an issue that prevented saving floating point
+      values.
+
+## 1.1.0
+  - Overview
+    - Added support for Firebase Storage and bug fixes.
+  - Changes
+    - Added support for Firebase Storage.
+    - Fixed crash in Firebase Analytics when logging arrays of parameters.
+    - Fixed crash in Firebase Messaging when receiving messages with empty
+      payloads on Android.
+    - Fixed random hang when initializing Firebase Messaging on iOS.
+    - Fixed topic subscriptions in Firebase Messaging.
+    - Fixed an issue that resulted in a missing app icon when using Firebase
+      Messaging on Android.
+    - Fixed exception in error message construction when FirebaseApp
+      initialization fails.
+    - Fixed reporting of null events in the Firebase Realtime Database.
+    - Fixed unsubscribe for complex queries in the Firebase Realtime Database.
+    - Fixed service account authentication in the Firebase Realtime Database.
+    - Fixed Firebase.Database.Unity being stripped from iOS builds.
+    - Fixed support for building with Firebase plugins in Microsoft
+      Visual Studio.
+    - Fixed scene transitions causing event routing to break across all
+      components.
+    - Changed editor plugins for Firebase Authentication and Invites to
+      return success for all operations instead of raising exceptions.
+    - Changed editor plugin to read JAVA_HOME from the Unity editor
+      preferences.
+    - Changed editor plugin to scan all google-services.json and
+      GoogleService-Info.plist files in the project and select the config file
+      matching the project's current bundle ID.
+    - Improved the performance of AAR / JAR resolution when the Android config
+      is selected and auto-resolution is enabled.
+    - Improved error messages in the editor plugin.
+  - Known Issues
+    - Proguard is not integrated into Android builds. We have distributed
+      proguard files that can be manually integrated into Android builds
+      within AAR files matching the following pattern in each
+      Unity package:
+      `Firebase/m2repository/com/google/firebase/firebase-*-unity/*firebase-*.srcaar`
+    - Incompatible AARs are not resolved correctly when building for Android.
+      This can require manual intervention when using multiple plugins
+      (e.g Firebase + AdMob + Google Play Games).  A workaround is documented
+      on the
+      [AdMob Unity plugin issue tracker](https://github.com/googleads/googleads-mobile-unity/issues/314).
+
+## 1.0.1
+  - Overview
+    - Bug fixes.
+  - Changes
+    - Fixed Realtime Database restricted access from the Unity Editor on
+      Windows.
+    - Fixed load and build errors when iOS support is not installed.
+    - Fixed an issue that prevented the creation of multiple FirebaseApp
+      instances and customization of the default instance on iOS.
+    - Removed all dependencies on Python for Android resource generation on
+      Windows.
+    - Fixed an issue with pod tool discovery when the Ruby Gem binary directory
+      is modified from the default location.
+    - Fixed problems when building for Android with the IL2CPP scripting
+      backend.
+  - Known Issues
+    - Proguard is not integrated into Android builds. We have distributed
+      proguard files that can be manually integrated into Android builds
+      within AAR files matching the following pattern in each
+      Unity package:
+      `Firebase/m2repository/com/google/firebase/firebase-*-unity/*firebase-*.srcaar`
+
+## 1.0.0
+  - Overview
+    - First public release with support for Firebase Analytics,
+      Authentication, Real-time Database, Invites, Dynamic Links and
+      Remote Config.
+      See our
+      [setup guide](https://firebase.google.com/docs/unity/setup) to
+      get started.
+  - Known Issues
+    - Proguard is not integrated into Android builds.  We have distributed
+      proguard files that can be manually integrated into Android builds
+      within AAR files matching the following pattern in each
+      Unity package:
+      `Firebase/m2repository/com/google/firebase/firebase-*-unity/*firebase-*.srcaar`
