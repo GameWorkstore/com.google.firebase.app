@@ -13,7 +13,6 @@ features on *iOS* and *Android*:
 | Cloud Firestore                    | FirebaseFirestore.unitypackage    |
 | Firebase Functions                 | FirebaseFunctions.unitypackage    |
 | Firebase Installations             | FirebaseInstallations.unitypackage|
-| Firebase Instance ID               | FirebaseInstanceId.unitypackage   |
 | Firebase Messaging                 | FirebaseMessaging.unitypackage    |
 | Firebase Realtime Database         | FirebaseDatabase.unitypackage     |
 | Firebase Remote Config             | FirebaseRemoteConfig.unitypackage |
@@ -171,6 +170,24 @@ Release Notes
     - Remote Config: The previously-deprecated class
       `FirebaseRemoteConfigDeprecated` and the property
       `ConfigSettings.IsDeveloperMode` have been removed.
+-   Changes
+    - Firestore: Internal assertions will now trigger C# exceptions (possible
+      exception types are `ArgumentException`, `InvalidOperationException` and
+      `FirestoreException` with `ErrorCode` set to `Internal`). These exceptions
+      are not meant to be caught -- rather, they are to help with debugging and
+      to avoid crashing the Unity editor instance.
+      *Important*: on iOS, you would need to change two settings on the exported
+      XCode project for this feature to work properly. Open `Build Settings` and
+      make sure that `Enable C++ Exceptions` and `Enable C++ Runtime Types`
+      settings are set to `Yes` for _all_ of the following: the `Unity-iPhone`
+      scheme, the `UnityFramework` scheme (for Unity versions 2019.3 and above)
+      _and_ the `Unity-iPhone` project. If you're doing incremental iOS builds
+      (i.e., if you use `Append` instead of `Replace` when doing the build),
+      these settings will persist between rebuilds, so you would only have to do
+      this once per project.
+    - Firestore: Fix `RunTransactionAsync()` to roll back the transaction if
+      the task returned from the given callback faults
+      ((#1042)[https://github.com/firebase/quickstart-unity/issues/1042]).
 
 ### 7.2.0:
 -   Changes
