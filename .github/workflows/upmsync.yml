@@ -29,13 +29,14 @@ jobs:
       
       - name: Zip Staging/package/Firebase/Plugins/x86_64/FirebaseCppApp-8_0_0.so
         run: |
-          File=./Staging/package/Firebase/Plugins/x86_64/FirebaseCppApp-8_0_0.so
+          cd ./Staging/package/Firebase/Plugins/x86_64/
+          File=FirebaseCppApp-8_0_0.so
           #MaxSize = 100 MB
           MaxSize=100000000 
           FileSize=$(stat -c%s "$File")
           echo "Size of $File = $FileSize bytes."
           if (( FileSize > MaxSize )); then
-              Zipped=./Staging/package/Firebase/Plugins/x86_64/FirebaseCppApp-8_0_0.so.zip
+              Zipped=FirebaseCppApp-8_0_0.so.zip
               zip $Zipped $File
               FileSize=$(stat -c%s "$Zipped")
               echo "$Zipped were zipped. $Zipped = $FileSize bytes."
