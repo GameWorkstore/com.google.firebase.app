@@ -22,6 +22,7 @@ namespace Firebase.Editor.ZipExtractor
 
                     var sdir = Path.GetDirectoryName(original);
                     //UnityEngine.Debug.Log(sdir);
+#if UNITY_EDITOR_OSX
                     var processInfo = new ProcessStartInfo()
                     {
                         FileName = "unzip",
@@ -30,6 +31,16 @@ namespace Firebase.Editor.ZipExtractor
                         RedirectStandardError = true,
                         RedirectStandardOutput = true
                     };
+#else
+                    var processInfo = new ProcessStartInfo()
+                    {
+                        FileName = "powershell",
+                        Arguments = "-command \"Expand-Archive " + file + " " + sdir + "\"",
+                        UseShellExecute = false,
+                        RedirectStandardError = true,
+                        RedirectStandardOutput = true
+                    };
+#endif
                     var proc = new Process() { StartInfo = processInfo };
                     proc.Start();
                     //string output = proc.StandardOutput.ReadToEnd();
