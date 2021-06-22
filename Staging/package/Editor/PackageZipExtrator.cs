@@ -21,7 +21,7 @@ namespace Firebase.Editor.ZipExtractor
                     if (File.Exists(original)) continue;
 
                     var sdir = Path.GetDirectoryName(original);
-                    UnityEngine.Debug.Log(sdir);
+                    //UnityEngine.Debug.Log(sdir);
                     var processInfo = new ProcessStartInfo()
                     {
                         FileName = "unzip",
