@@ -10,6 +10,7 @@ jobs:
     env:
       base: https://dl.google.com/games/registry/unity/com.google.firebase.app/com.google.firebase.app
       version: 8.1.0
+      so_version: 8_0_0
     steps:
       - uses: actions/checkout@v2
       - name: Config
@@ -27,16 +28,16 @@ jobs:
           rm content.tgz
           ls
       
-      - name: Zip Staging/package/Firebase/Plugins/x86_64/FirebaseCppApp-8_0_0.so
+      - name: Zip Staging/package/Firebase/Plugins/x86_64/FirebaseCppApp-X_X_X.so
         run: |
           cd ./Staging/package/Firebase/Plugins/x86_64/
-          File=FirebaseCppApp-8_0_0.so
+          File=FirebaseCppApp-${{ env.so_version }}.so
           #MaxSize = 100 MB
           MaxSize=100000000 
           FileSize=$(stat -c%s "$File")
           echo "Size of $File = $FileSize bytes."
           if (( FileSize > MaxSize )); then
-              Zipped=FirebaseCppApp-8_0_0.so.zip
+              Zipped=FirebaseCppApp-${{ env.so_version }}.so.zip
               zip $Zipped $File
               FileSize=$(stat -c%s "$Zipped")
               echo "$Zipped were zipped. $Zipped = $FileSize bytes."
