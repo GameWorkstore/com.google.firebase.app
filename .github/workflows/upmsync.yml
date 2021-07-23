@@ -10,7 +10,7 @@ jobs:
     env:
       base: https://dl.google.com/games/registry/unity/com.google.firebase.app/com.google.firebase.app
       version: 8.1.0
-      so_version: 8_0_0
+      so_version: 8_1_0
     steps:
       - uses: actions/checkout@v2
       - name: Config
