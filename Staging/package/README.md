@@ -169,6 +169,11 @@ Release Notes
       `QuerySnapshot`, and `DocumentSnapshot` classes. These methods were
       unimplemented, and we plan to add proper support for them in a future
       release.
+    - Crashlytics: Upload UnityFramework symbols in addition to the main app
+      dSYM file to improve symbolication
+      ([#673](https://github.com/firebase/quickstart-unity/issues/673)).
+    - Messaging: Fixed a duplicate class error when building an application
+      which also uses Firebase Functions.
 
 ### 8.1.0:
 -   Changes
