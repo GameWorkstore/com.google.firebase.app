@@ -163,6 +163,16 @@ Support
 
 Release Notes
 -------------
+### 8.3.0:
+-   Changes
+    - Firestore: Simplified the API for modifying the settings of a
+      `FirebaseFirestore` instance. This is a backwards-incompatible change and
+      requires updates to code that sets `FirebaseFirestore.Settings`.
+    - Firestore: Changed an argument to `Query.WhereNotIn()` from `List` to
+      `IEnumerable`, to be consistent with `Query.WhereIn()`.
+    - Messaging (Android): Fixes an issue with receiving tokens when
+      initializing the app.
+
 ### 8.2.0:
 -   Changes
     - Firestore: Removed `Equals` and `GetHashCode` methods from `Query`,
