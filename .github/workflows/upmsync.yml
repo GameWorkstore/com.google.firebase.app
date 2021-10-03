@@ -9,8 +9,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       base: https://dl.google.com/games/registry/unity/com.google.firebase.app/com.google.firebase.app
-      version: 8.2.0
-      so_version: 8_2_0
+      version: 8.3.0
+      so_version: 8_3_0
     steps:
       - uses: actions/checkout@v2
       - name: Config
@@ -28,25 +28,10 @@ jobs:
           rm content.tgz
           ls
       
-      - name: Zip Staging/package/Firebase/Plugins/x86_64/FirebaseCppApp-X_X_X.so
+      - name: Remove Linux Desktop Support - Staging/package/Firebase/Plugins/x86_64/FirebaseCppApp-X_X_X.so and meta
         run: |
-          cd ./Staging/package/Firebase/Plugins/x86_64/
-          File=FirebaseCppApp-${{ env.so_version }}.so
-          #MaxSize = 100 MB
-          MaxSize=100000000 
-          FileSize=$(stat -c%s "$File")
-          echo "Size of $File = $FileSize bytes."
-          if (( FileSize > MaxSize )); then
-              Zipped=FirebaseCppApp-${{ env.so_version }}.so.zip
-              zip $Zipped $File
-              FileSize=$(stat -c%s "$Zipped")
-              echo "$Zipped were zipped. $Zipped = $FileSize bytes."
-              rm -rf $File
-          fi
-      
-      - name: Install Support
-        run: |
-          cp -a InstallSupport/* Staging/package/
+          rm -rf Staging/package/Firebase/Plugins/x86_64/FirebaseCppApp-${{ env.so_version }}.so
+          rm -rf Staging/package/Firebase/Plugins/x86_64/FirebaseCppApp-${{ env.so_version }}.so.meta
       
       - name: Commit
         run: |
