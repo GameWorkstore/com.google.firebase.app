@@ -9,8 +9,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       base: https://dl.google.com/games/registry/unity/com.google.firebase.app/com.google.firebase.app
-      version: 8.3.0
-      so_version: 8_3_0
+      version: 8.4.0
+      so_version: 8_4_0
     steps:
       - uses: actions/checkout@v2
       - name: Config
