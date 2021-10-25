@@ -4,8 +4,8 @@ labels:
 - gvh
 - gvh_targets-editor
 - gvh_teditor
-- gvh_v8.3.0
-- gvh_version-8.3.0
+- gvh_v8.4.0
+- gvh_version-8.4.0
 - gvhp_exportpath-Firebase/Editor/Firebase.Editor.dll
 timeCreated: 1481245558
 time_created: 1480838400
