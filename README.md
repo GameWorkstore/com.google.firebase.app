@@ -163,6 +163,21 @@ Support
 
 Release Notes
 -------------
+### UNRELEASED
+- Changes
+    - Storage: Added a method to access the url of a storage instance.
+
+### 8.7.0:
+- Changes
+    - General (iOS): Fixed an intermittent crash on iOS 15 caused by
+      constructing C++ objects during Objective-C's `+load` method.
+      ([#706](https://github.com/firebase/firebase-cpp-sdk/pull/706))
+      ([#783](https://github.com/firebase/firebase-cpp-sdk/pull/783))
+    - Crashlytics (Android): Fixed a bug that prevented some Crashlytics session
+      files from being removed after the session ended. All session-specific
+      files are now properly cleaned up.
+      ([#737](https://github.com/firebase/firebase-cpp-sdk/issues/737))
+
 ### 8.6.2:
 -   Changes
     - Messaging (Android): Clean up callbacks on termination, to possibly fix
