@@ -1,11 +1,11 @@
-<!-- Copyright (C) 2018 Google Inc. All Rights Reserved.
+<!-- Copyright (C) 2019 Google Inc. All Rights Reserved.
 
 FirebaseApp iOS and Android Dependencies.
 -->
 
 <dependencies>
   <iosPods>
-    <iosPod name="Firebase/Core" version="8.13.0" minTargetSdk="9.0">
+    <iosPod name="Firebase/Core" version="8.15.0" minTargetSdk="8.0">
     </iosPod>
   </iosPods>
   <androidPackages>
@@ -15,11 +15,10 @@ FirebaseApp iOS and Android Dependencies.
     </androidPackage>
     <androidPackage spec="com.google.android.gms:play-services-base:18.0.1">
     </androidPackage>
-    <androidPackage spec="com.google.firebase:firebase-app-unity:8.9.0">
+    <androidPackage spec="com.google.firebase:firebase-app-unity:8.10.1">
       <repositories>
         <repository>Assets/Firebase/m2repository</repository>
       </repositories>
     </androidPackage>
   </androidPackages>
 </dependencies>
-
