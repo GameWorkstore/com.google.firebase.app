@@ -33,6 +33,11 @@ jobs:
           rm -rf Staging/package/Firebase/Plugins/x86_64/FirebaseCppApp-${{ env.so_version }}.so
           rm -rf Staging/package/Firebase/Plugins/x86_64/FirebaseCppApp-${{ env.so_version }}.so.meta
       
+      - name: Remove MacOS Desktop Support - Staging/package/Firebase/Plugins/x86_64/FirebaseCppApp-9_1_0.bundle
+        run: |
+          rm -rf Staging/package/Firebase/Plugins/x86_64/FirebaseCppApp-9_1_0.bundle
+          rm -rf Staging/package/Firebase/Plugins/x86_64/FirebaseCppApp-9_1_0.bundle.meta
+      
       - name: Commit
         run: |
           git add --a
