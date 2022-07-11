@@ -1,6 +1,6 @@
 {
   "name": "com.google.firebase.app",
-  "version": "9.0.0",
+  "version": "9.1.0",
   "displayName": "Firebase App (Core)",
   "keywords": [
     "Google",
@@ -13,7 +13,7 @@
     "url": "https://firebase.google.com/docs/unity/setup"
   },
   "description": "Firebase App is the core library every Firebase package depends on.",
-  "unity": "2017.1",
+  "unity": "2018.1",
   "dependencies": {
     "com.google.external-dependency-manager": "1.2.171"
   }
