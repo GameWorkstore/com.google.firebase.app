@@ -44,8 +44,6 @@ jobs:
           lipo -remove arm64 Staging/package/Firebase/Plugins/x86_64/FirebaseCppApp-${{ env.so_version }}.bundle -o Staging/package/Firebase/Plugins/x86_64/FirebaseCppApp-${{ env.so_version }}.bundle
           cp FirebaseCppApp-X_X_X-arm64.bundle.meta Staging/package/Firebase/Plugins/x86_64/FirebaseCppApp-${{ env.so_version }}-arm64.bundle.meta
 
-lipo -remove arm64 FirebaseCppApp-9_3_0.bundle -o FirebaseCppApp-9_3_0-x86_64.bundle
-
       - name: Commit
         run: |
           git add --a
