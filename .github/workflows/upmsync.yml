@@ -9,8 +9,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       base: https://dl.google.com/games/registry/unity/com.google.firebase.app/com.google.firebase.app
-      version: 9.1.0
-      so_version: 9_1_0
+      version: 9.3.0
+      so_version: 9_3_0
     steps:
       - uses: actions/checkout@v2
       - name: Config
@@ -33,11 +33,19 @@ jobs:
           rm -rf Staging/package/Firebase/Plugins/x86_64/FirebaseCppApp-${{ env.so_version }}.so
           rm -rf Staging/package/Firebase/Plugins/x86_64/FirebaseCppApp-${{ env.so_version }}.so.meta
       
-      - name: Remove MacOS Desktop Support - Staging/package/Firebase/Plugins/x86_64/FirebaseCppApp-9_1_0.bundle
+      - name: Remove MacOS Desktop Support - Staging/package/Firebase/Plugins/x86_64/FirebaseCppApp-X_X_X.bundle
         run: |
-          rm -rf Staging/package/Firebase/Plugins/x86_64/FirebaseCppApp-9_1_0.bundle
-          rm -rf Staging/package/Firebase/Plugins/x86_64/FirebaseCppApp-9_1_0.bundle.meta
-      
+          #rm -rf Staging/package/Firebase/Plugins/x86_64/FirebaseCppApp-${{ env.so_version }}.bundle
+          #rm -rf Staging/package/Firebase/Plugins/x86_64/FirebaseCppApp-${{ env.so_version }}.bundle.meta
+
+      - name: Split MacOS Bundle for Desktop Support - Staging/package/Firebase/Plugins/x86_64/FirebaseCppApp-X_X_X.bundle
+        run: |
+          lipo -remove x86_64 Staging/package/Firebase/Plugins/x86_64/FirebaseCppApp-${{ env.so_version }}.bundle -o Staging/package/Firebase/Plugins/x86_64/FirebaseCppApp-${{ env.so_version }}-arm64.bundle
+          lipo -remove arm64 Staging/package/Firebase/Plugins/x86_64/FirebaseCppApp-${{ env.so_version }}.bundle -o Staging/package/Firebase/Plugins/x86_64/FirebaseCppApp-${{ env.so_version }}.bundle
+          cp FirebaseCppApp-X_X_X-arm64.bundle.meta Staging/package/Firebase/Plugins/x86_64/FirebaseCppApp-${{ env.so_version }}-arm64.bundle.meta
+
+lipo -remove arm64 FirebaseCppApp-9_3_0.bundle -o FirebaseCppApp-9_3_0-x86_64.bundle
+
       - name: Commit
         run: |
           git add --a
