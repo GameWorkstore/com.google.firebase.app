@@ -49,7 +49,7 @@ PluginImporter:
   - first:
       : OSXIntel64
     second:
-      enabled: 1
+      enabled: 0
       settings:
         CPU: x86_64
   - first:
@@ -78,7 +78,7 @@ PluginImporter:
     second:
       enabled: 1
       settings:
-        CPU: AnyCPU
+        CPU: ARM64
         DefaultValueInitialized: true
         OS: OSX
   - first:
