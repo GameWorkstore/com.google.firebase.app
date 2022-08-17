@@ -44,7 +44,7 @@ jobs:
           cp arm64-X_X_X.meta Staging/package/Firebase/Plugins/arm64.meta
           lipo -remove x86_64 Staging/package/Firebase/Plugins/x86_64/FirebaseCppApp-${{ env.so_version }}.bundle -o Staging/package/Firebase/Plugins/arm64/FirebaseCppApp-${{ env.so_version }}.bundle
           lipo -remove arm64 Staging/package/Firebase/Plugins/x86_64/FirebaseCppApp-${{ env.so_version }}.bundle -o Staging/package/Firebase/Plugins/x86_64/FirebaseCppApp-${{ env.so_version }}.bundle
-          cp FirebaseCppApp-X_X_X-arm64.bundle.meta Staging/package/Firebase/Plugins/x86_64/FirebaseCppApp-${{ env.so_version }}-arm64.bundle.meta
+          cp FirebaseCppApp-X_X_X-arm64.bundle.meta Staging/package/Firebase/Plugins/arm64/FirebaseCppApp-${{ env.so_version }}.bundle.meta
 
       - name: Commit
         run: |
