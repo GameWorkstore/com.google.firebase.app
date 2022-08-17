@@ -9,8 +9,8 @@ jobs:
     runs-on: macos-latest
     env:
       base: https://dl.google.com/games/registry/unity/com.google.firebase.app/com.google.firebase.app
-      version: 9.3.0
-      so_version: 9_3_0
+      version: 9.4.0
+      so_version: 9_4_0
     steps:
       - uses: actions/checkout@v2
       - name: Config
@@ -40,7 +40,9 @@ jobs:
 
       - name: Split MacOS Bundle for Desktop Support - Staging/package/Firebase/Plugins/x86_64/FirebaseCppApp-X_X_X.bundle
         run: |
-          lipo -remove x86_64 Staging/package/Firebase/Plugins/x86_64/FirebaseCppApp-${{ env.so_version }}.bundle -o Staging/package/Firebase/Plugins/x86_64/FirebaseCppApp-${{ env.so_version }}-arm64.bundle
+          mkdir Staging/package/Firebase/Plugins/arm64
+          cp arm64-X_X_X.meta Staging/package/Firebase/Plugins/arm64.meta
+          lipo -remove x86_64 Staging/package/Firebase/Plugins/x86_64/FirebaseCppApp-${{ env.so_version }}.bundle -o Staging/package/Firebase/Plugins/arm64/FirebaseCppApp-${{ env.so_version }}.bundle
           lipo -remove arm64 Staging/package/Firebase/Plugins/x86_64/FirebaseCppApp-${{ env.so_version }}.bundle -o Staging/package/Firebase/Plugins/x86_64/FirebaseCppApp-${{ env.so_version }}.bundle
           cp FirebaseCppApp-X_X_X-arm64.bundle.meta Staging/package/Firebase/Plugins/x86_64/FirebaseCppApp-${{ env.so_version }}-arm64.bundle.meta
 
