@@ -3,7 +3,7 @@ guid: ad244891d0db94af1832ed30b9ec8b40
 labels:
 - gvh
 - gvh_version-9.5.0
-- gvhp_exportpath-Firebase/Plugins/x86_64/FirebaseCppApp-9_5_0.bundle
+- gvhp_exportpath-Firebase/Plugins/x86_64/FirebaseCppApp-9_6_0.bundle
 PluginImporter:
   externalObjects: {}
   serializedVersion: 2
