@@ -9,8 +9,8 @@ jobs:
     runs-on: macos-latest
     env:
       base: https://dl.google.com/games/registry/unity/com.google.firebase.app/com.google.firebase.app
-      version: 9.5.0
-      so_version: 9_5_0
+      version: 9.6.0
+      so_version: 9_6_0
     steps:
       - uses: actions/checkout@v2
       - name: Config
