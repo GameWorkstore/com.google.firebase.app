@@ -2,7 +2,7 @@ fileFormatVersion: 2
 guid: 3ebb289656f1477fa263e62d36c6e329
 labels:
 - gvh
-- gvh_version-9.6.0
+- gvh_version-10.0.1
 - gvhp_exportpath-Firebase/Plugins/Google.MiniJson.dll
 timeCreated: 1480838400
 PluginImporter:
@@ -67,6 +67,11 @@ PluginImporter:
       settings:
         CPU: AnyCPU
     iOS:
+      enabled: 1
+      settings:
+        CompileFlags:
+        FrameworkDependencies:
+    tvOS:
       enabled: 1
       settings:
         CompileFlags:
