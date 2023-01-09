@@ -12,7 +12,7 @@ jobs:
       version: 10.3.0
       so_version: 10_3_0
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Config
         run: |
           git config --local user.email "contact@gameworkstore.com"
