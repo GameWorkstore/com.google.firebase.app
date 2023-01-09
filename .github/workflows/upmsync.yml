@@ -33,7 +33,7 @@ jobs:
           rm -rf Staging/package/Firebase/Plugins/x86_64/FirebaseCppApp-${{ env.so_version }}.so
           rm -rf Staging/package/Firebase/Plugins/x86_64/FirebaseCppApp-${{ env.so_version }}.so.meta
       
-      - name: Remove MacOS Desktop Support - Staging/package/Firebase/Plugins/x86_64/FirebaseCppApp-X_X_X.bundle
+      - name: Remove MacOS Desktop Support - Staging/package/Firebase/Plugins/x86_64/FirebaseCppApp-X_X_X.bundle and meta
         run: |
           #rm -rf Staging/package/Firebase/Plugins/x86_64/FirebaseCppApp-${{ env.so_version }}.bundle
           #rm -rf Staging/package/Firebase/Plugins/x86_64/FirebaseCppApp-${{ env.so_version }}.bundle.meta
