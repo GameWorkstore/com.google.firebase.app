@@ -48,7 +48,7 @@ jobs:
 
       - name: Commit
         run: |
-          git add --a
+          git add --a && exit 0
           git commit -m "Package Update ${{ env.version }}"
           git push origin
 
