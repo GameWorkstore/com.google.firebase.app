@@ -28,7 +28,7 @@ jobs:
           rm content.tgz
           ls
       
-      - name: Remove Linux Desktop Support - Staging/package/Firebase/Plugins/x86_64/FirebaseCppApp-X_X_X.so and meta
+      - name: Remove Linux Desktop Support - Staging/package/Firebase/Plugins/x86_64/FirebaseCppApp-X_X_X.so and meta.
         run: |
           rm -rf Staging/package/Firebase/Plugins/x86_64/FirebaseCppApp-${{ env.so_version }}.so
           rm -rf Staging/package/Firebase/Plugins/x86_64/FirebaseCppApp-${{ env.so_version }}.so.meta
