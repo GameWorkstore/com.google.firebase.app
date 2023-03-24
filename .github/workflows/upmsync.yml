@@ -59,6 +59,8 @@ jobs:
         run: |
           ls Staging/package/
           git subtree split -P Staging/package/ -b upm
+          git clean -fdx
+          git reset --hard
           git checkout upm
           ls
 
