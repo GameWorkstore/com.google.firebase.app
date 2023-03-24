@@ -29,16 +29,19 @@ jobs:
           ls
       
       - name: Remove Linux Desktop Support - Staging/package/Firebase/Plugins/x86_64/FirebaseCppApp-X_X_X.so and meta
+        if: false
         run: |
           rm -rf Staging/package/Firebase/Plugins/x86_64/FirebaseCppApp-${{ env.so_version }}.so
           rm -rf Staging/package/Firebase/Plugins/x86_64/FirebaseCppApp-${{ env.so_version }}.so.meta
       
       - name: Remove MacOS Desktop Support - Staging/package/Firebase/Plugins/x86_64/FirebaseCppApp-X_X_X.bundle and meta
+        if: false
         run: |
-          #rm -rf Staging/package/Firebase/Plugins/x86_64/FirebaseCppApp-${{ env.so_version }}.bundle
-          #rm -rf Staging/package/Firebase/Plugins/x86_64/FirebaseCppApp-${{ env.so_version }}.bundle.meta
+          rm -rf Staging/package/Firebase/Plugins/x86_64/FirebaseCppApp-${{ env.so_version }}.bundle
+          rm -rf Staging/package/Firebase/Plugins/x86_64/FirebaseCppApp-${{ env.so_version }}.bundle.meta
 
       - name: Split MacOS Bundle for Desktop Support - Staging/package/Firebase/Plugins/x86_64/FirebaseCppApp-X_X_X.bundle
+        if: false
         run: |
           mkdir Staging/package/Firebase/Plugins/arm64
           cp arm64-X_X_X.meta Staging/package/Firebase/Plugins/arm64.meta
