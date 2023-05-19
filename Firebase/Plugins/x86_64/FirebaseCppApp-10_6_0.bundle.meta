@@ -45,7 +45,7 @@ PluginImporter:
       settings:
         CPU: x86_64
     OSXUniversal:
-      enabled: 1
+      enabled: 0
       settings:
         CPU: AnyCPU
     Web:
