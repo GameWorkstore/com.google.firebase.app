@@ -9,6 +9,7 @@ Note: Firebase Dynamic Links is not supported on tvOS.
 | Feature                            | Unity Package                     |
 |:----------------------------------:|:---------------------------------:|
 | Firebase Analytics                 | FirebaseAnalytics.unitypackage    |
+| Firebase App Check                 | FirebaseAppCheck.unitypackage     |
 | Firebase Authentication            | FirebaseAuth.unitypackage         |
 | Firebase Crashlytics               | FirebaseCrashlytics.unitypackage  |
 | Firebase Dynamic Links             | FirebaseDynamicLinks.unitypackage |
@@ -31,6 +32,7 @@ desktop builds on Windows, OS X, and Linux:
 | Feature                            | Unity Package                     |
 |:----------------------------------:|:---------------------------------:|
 | Firebase Authentication            | FirebaseAuth.unitypackage         |
+| Firebase App Check                 | FirebaseAppCheck.unitypackage     |
 | Firebase Realtime Database*        | FirebaseDatabase.unitypackage     |
 | Cloud Firestore                    | FirebaseFirestore.unitypackage    |
 | Firebase Functions                 | FirebaseFunctions.unitypackage    |
@@ -69,6 +71,55 @@ Support
 
 Release Notes
 -------------
+### 11.1.0
+- Changes
+    - General: Update to Firebase C++ SDK version 11.1.0.
+    - General (Android): Update Firebase Android BoM dependencies to v32.1.0.
+    - General (iOS): Update Firebase Cocoapods dependencies to v10.10.0.
+    - General (Android): Fix for deadlock within JniResultCallback, commonly seen
+      within Messaging, but affecting other products as well.
+    - General: Fix an [issue](https://github.com/firebase/firebase-unity-sdk/issues/726)
+      where AppCheck bundles were unintentionally included in App in the tgz.
+    - Auth: Fix a [crash](https://github.com/firebase/firebase-unity-sdk/issues/733)
+      that could occur when referencing CurrentUser. 
+    - Auth: Remove internal methods.
+    - Database/Firestore (Desktop): Fixed a crash on Windows when the user's home
+      directory contains non-ANSI characters (Unicode above U+00FF).
+    - Storage (Desktop): Fixed a crash on Windows when uploading files from a path
+      containing non-ANSI characters (Unicode above U+00FF).
+
+### 11.0.0
+- Changes
+    - App Check: Adds support for Firebase App Check on Android, iOS, tvOS,
+      and desktop platforms. To learn more, see
+      https://firebase.google.com/docs/app-check
+    - Messaging: Remove deprecated calls `Send`, `Subscribe`, and `Unsubscribe`.
+    - Remote Config (Android/iOS): Added support for real-time config updates. Use the new
+      `OnConfigUpdateListener` API to get real-time updates. Existing
+      `FetchAsync` and `ActivateAsync` APIs aren't affected by this change.
+      To learn more, see
+      [Get started with Firebase Remote Config](https://firebase.google.com/docs/remote-config/get-started?platform=unity#add-real-time-listener).
+    - Auth: Deprecated a number of methods, appending `_DEPRECATED` to some of
+      their names. This is a breaking change; you must either modify your code
+      to refer to the `_DEPRECATED` methods, or switch to the new methods, which
+      have new return types `AuthResult` (rather than `SignInResult`). The
+      deprecated methods will be removed in the *next* major release of the
+      Firebase Unity SDK. *(Note: do not mix and match using the old
+      and new methods or undefined behavior may result.)*
+    - Firestore: Added `Query.Count()`, which fetches the number of documents in
+      the result set without actually downloading the documents
+      ([#659](https://github.com/firebase/firebase-unity-sdk/pull/659)).
+
+### 10.7.0
+- Changes
+    - General: Update to Firebase C++ SDK version 10.7.0.
+    - General (Android): Update Firebase Android BoM dependencies to v31.3.0.
+    - General (iOS): Update Firebase Cocoapods dependencies to v10.7.0.
+    - Messaging (Android): Generate the custom MessagingUnityPlayerActivity
+      as a Java file instead of precompiling it. This is to better support
+      changes with the UnityPlayerActivity, and GameActivity options, in
+      the Unity 2023 editor.
+
 ### 10.6.0
 - Changes
     - General (Android): Update to Firebase Android BoM version 31.2.3.
