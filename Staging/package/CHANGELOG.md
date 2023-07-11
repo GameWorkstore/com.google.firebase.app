@@ -71,6 +71,17 @@ Support
 
 Release Notes
 -------------
+### 11.2.0
+- Changes
+    - General: Update to Firebase C++ SDK version 11.2.0.
+    - General (Android): Update Firebase Android BoM dependencies to v32.1.1.
+    - General (iOS): Update Firebase Cocoapods dependencies to v10.11.0.
+    - Remote Config (Desktop): Fixed numeric conversion when the system
+      language's number format uses commas as decimal points.
+    - Remote Config (Desktop): Fixed handling of time zones on Windows when the
+      time zone name in the current system language contains an accented
+      character or apostrophe.
+
 ### 11.1.0
 - Changes
     - General: Update to Firebase C++ SDK version 11.1.0.
@@ -81,7 +92,7 @@ Release Notes
     - General: Fix an [issue](https://github.com/firebase/firebase-unity-sdk/issues/726)
       where AppCheck bundles were unintentionally included in App in the tgz.
     - Auth: Fix a [crash](https://github.com/firebase/firebase-unity-sdk/issues/733)
-      that could occur when referencing CurrentUser. 
+      that could occur when referencing CurrentUser.
     - Auth: Remove internal methods.
     - Database/Firestore (Desktop): Fixed a crash on Windows when the user's home
       directory contains non-ANSI characters (Unicode above U+00FF).
