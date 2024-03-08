@@ -47,7 +47,7 @@ jobs:
           lipo -remove arm64 Staging/package/Firebase/Plugins/x86_64/FirebaseCppApp-${{ env.so_version }}.bundle -o Staging/package/Firebase/Plugins/x86_64/FirebaseCppApp-${{ env.so_version }}.bundle
           sed -e "s/{FIR_SO_VERSION}/${{ env.so_version }}/" -e "s/{FIR_VERSION}/${{ env.version }}/" FirebaseCppApp-X_X_X-arm64.bundle.meta > Staging/package/Firebase/Plugins/arm64/FirebaseCppApp-${{ env.so_version }}.bundle.meta
           cp arm64-X_X_X.meta Staging/package/Firebase/Plugins/arm64.meta
-          sed -e "24s/CPU: AnyCPU/CPU: x86_64/" -e "26s/OS: AnyOS/OS: OSX/" -e "48s/enabled: 1/enabled: 0/" -i Staging/package/Firebase/Plugins/x86_64/FirebaseCppApp-${{ env.so_version }}.bundle.meta
+          sed -e "24s/CPU: AnyCPU/CPU: x86_64/" -e "26s/OS: AnyOS/OS: OSX/" -e "48s/enabled: 1/enabled: 0/" -i '' Staging/package/Firebase/Plugins/x86_64/FirebaseCppApp-${{ env.so_version }}.bundle.meta
 
       - name: Commit
         run: |
