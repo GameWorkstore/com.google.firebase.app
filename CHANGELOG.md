@@ -71,6 +71,15 @@ Support
 
 Release Notes
 -------------
+### 12.2.0
+- Changes
+    - General: Update to Firebase C++ SDK version 12.2.0.
+    - General (Android): Update to Firebase Android BoM version 33.1.2.
+    - General (iOS): Update to Firebase Cocoapods version 11.0.0.
+    - General: Update to EDM4U version 1.2.182.
+    - Messaging: Deprecated the Dispose functions, as they are no longer
+      necessary for cleaning up memory.
+
 ### 12.1.0
 - Changes
     - General: Update to Firebase C++ SDK version 12.1.0.
