@@ -1,0 +1,20 @@
+{
+  "name": "com.google.firebase.app",
+  "version": "12.5.0",
+  "displayName": "Firebase App (Core)",
+  "keywords": [
+    "Google",
+    "Firebase",
+    "FirebaseApp",
+    "App"
+  ],
+  "author": {
+    "name": "Google LLC",
+    "url": "https://firebase.google.com/docs/unity/setup"
+  },
+  "description": "Firebase App is the core library every Firebase package depends on.",
+  "unity": "2020.1",
+  "dependencies": {
+    "com.google.external-dependency-manager": "1.2.183"
+  }
+}
