@@ -71,6 +71,15 @@ Support
 
 Release Notes
 -------------
+### 12.6.0
+- Changes
+    - General: Update to Firebase C++ SDK version 12.6.0.
+    - General (iOS): Update to Firebase Cocoapods version 11.8.1.
+    - General (Android): Update to Firebase Android BoM version 33.9.0.
+    - General: Update to EDM4U version 1.2.185.
+    - General (Android): Support 16 KB page sizes, needed by Android 15.
+      For more info, see https://developer.android.com/guide/practices/page-sizes
+
 ### 12.5.0
 - Changes
     - General: Update to Firebase C++ SDK version 12.5.0.
