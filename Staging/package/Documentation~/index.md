@@ -71,7 +71,12 @@ Support
 
 Release Notes
 -------------
-### Upcoming
+### 12.4.1
+- Changes
+    - General: Remove unresolved SWIG string symbols.
+      ([#1139](https://github.com/firebase/firebase-unity-sdk/issues/1139)).
+
+### 12.4.0
 - Changes
     - General: Update to Firebase C++ SDK version 12.4.0.
     - General (iOS): Update to Firebase Cocoapods version 11.4.2.
