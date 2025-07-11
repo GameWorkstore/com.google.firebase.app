@@ -71,10 +71,30 @@ Support
 
 Release Notes
 -------------
+### Upcoming
+- Changes
+    - General: Update to Firebase C++ SDK version 12.4.0.
+    - General (iOS): Update to Firebase Cocoapods version 11.4.2.
+    - General (Android): Update to Firebase Android BoM version 33.5.1.
+    - General (Android): Reduced minSdkVersion back to 23.
+    - Analytics: Add support for Parameters of Lists of Dictionaries, needed
+      by some events such as ViewCart.
+      ([#1056](https://github.com/firebase/firebase-unity-sdk/issues/1056)).
+    - Analytics: Renamed ParameterGroupId to ParameterGroupID, to be
+      consistent with other similarly named variables. ParameterGroupId
+      is considered deprecated, and will be removed in the future.
+    - Analytics: Deprecated the Dispose functions, as they are no longer
+      necessary for cleaning up memory.
+    - Auth (Android): Setting PhotoUrl to empty string or null with
+      UpdateUserProfile clears the field, making it consistent with the
+      other platforms.
+      ([#1112](https://github.com/firebase/firebase-unity-sdk/issues/1112)).
+
 ### 12.3.0
 - Changes
     - General: Update to Firebase C++ SDK version 12.3.0.
     - General (Android): Update to Firebase Android BoM version 33.3.0.
+    - General (Android): Updated the minSdkVersion to 24.
     - General (iOS): Update to Firebase Cocoapods version 11.2.0.
     - General: Update to EDM4U version 1.2.183.
     - Messaging (Android): Fixed issue with TokenReceived not being called
