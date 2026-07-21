@@ -1,0 +1,11 @@
+fileFormatVersion: 2
+guid: 9b4ce77d2be44f25af03d4cbf9bee9f9
+labels:
+- gvh
+- gvh_version-13.13.0
+- gvhp_exportpath-Firebase/FirebaseApp/Internal/Firebase.App.Internal.asmdef
+timeCreated: 1480838400
+DefaultImporter:
+  userData:
+  assetBundleName:
+  assetBundleVariant:
