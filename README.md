@@ -109,6 +109,23 @@ Support
 
 Release Notes
 -------------
+### 13.11.0
+-   Changes
+    - General: Update to Firebase C++ SDK version 13.7.0.
+    - General (Android): Update to Firebase Android BoM version 34.13.0.
+    - General (iOS): Update to Firebase Cocoapods version 12.13.0.
+    - General: Strip debug symbols from Mac and Linux libraries, to reduce library size.
+    - General: Enforce the Xcode CMake generator for iOS and tvOS SDKs.
+    - General (iOS): Improve initialization to address intermittent crashes on iOS 26.
+      ([#1436](https://github.com/firebase/firebase-unity-sdk/issues/1436)).
+    - Firebase AI: Add support for Grounding with Google Maps.
+    - Firebase AI: Improved image configuration when using Nano Banana.
+    - Firebase AI: Add support for LiveSession resumption.
+    - Storage: Added `ListAsync` API to list items and prefixes under a reference.
+    - Functions: Fixed tgz export, added missing asmdef for functions. Fixes issue where Functions were not being exported correctly in the tgz build.
+    - Firebase AI: Fix tgz export, added missing asmdef for Firebase AI. Fixes issue where Firebase AI was not being exported correctly in the tgz build.
+    - Functions: Added support for passing and enforcing Limited Use App Check tokens.
+
 ### 13.10.0
 -   Changes
     - General: Update to Firebase C++ SDK version 13.6.0.
