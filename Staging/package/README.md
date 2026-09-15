@@ -109,6 +109,28 @@ Support
 
 Release Notes
 -------------
+### 13.16.0
+-   Changes
+    - General: Update to Firebase C++ SDK version 13.11.0.
+    - General (Android): Update to Firebase Android BoM version 34.18.0.
+    - General (iOS): Update to Firebase Cocoapods version 12.18.0.
+    - Firebase AI: Add support for RealtimeInputConfig in the Live API, enabling configuration of Voice Activity Detection (VAD), activity handling (interruption behavior), and turn coverage.
+    - Firebase AI: Added manual activity demarcation methods (SendStartActivityRealtimeAsync, SendStopActivityRealtimeAsync) and updated realtime input streaming to support audio, video, and text payloads.
+    - General (Editor): Fixed a deadlock / hang during domain reload and editor quitting
+      by gracefully disposing Firebase apps and terminating native listeners on the main thread
+      ([#1485](https://github.com/firebase/firebase-unity-sdk/issues/1485)).
+    - Firebase AI: Removed deprecated Imagen methods and types due to Imagen
+      models being shut down in August 2026. As a replacement, you can
+      [migrate your apps to use Gemini Image models (the "Nano Banana" models)](https://firebase.google.com/docs/ai-logic/imagen-models-migration).
+    - Firebase AI: Added `AudioAsFloat` property to `GenerateContentResponse` to seamlessly decode `audio/` byte arrays into normalized float arrays.
+    - Firebase AI: Allowed `LiveSessionResponse` to use any `audio/` MIME type returned by text-to-speech models.
+    - Messaging: Added new Registration methods using Installation Ids.
+      Deprecated old Token based methods.
+    - Remote Config: Add support for setting Custom Signals.
+    - Functions / Firebase AI: Fixed a `UnityException` thrown when invoking Cloud Functions
+      or connecting to Live Generative Models from background threads
+      ([#1506](https://github.com/firebase/firebase-unity-sdk/issues/1506)).
+
 ### 13.15.0
 -   Changes
     - General: Update to Firebase C++ SDK version 13.11.0.
